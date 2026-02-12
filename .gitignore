@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+.env
+*.db
+!data/genesis-curated.db
+.pytest_cache/
+.coverage
+htmlcov/
