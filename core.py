@@ -14,6 +14,8 @@ Usage:
   python core.py status                       # Show evolution dashboard
   python core.py quest                        # Show active quests
   python core.py recall <query>               # Search what you've learned
+  python core.py watch                         # Watch ~/.weevolve/watch/ for new files
+  python core.py watch --interval 5           # Custom poll interval in seconds
   python core.py daemon                       # Run as continuous daemon
   python core.py evolve                       # Analyze gaps & generate smart quests
   python core.py genesis export [path]        # Export genesis.db (PII-stripped)
@@ -723,17 +725,24 @@ def recall(query: str, limit: int = 5) -> List[Dict]:
     """Search knowledge atoms by keyword. Returns matching learnings."""
     db = init_db()
 
+    # Escape SQL LIKE special characters to prevent wildcard injection
+    safe_query = query.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+    like_param = f'%{safe_query}%'
+    # Clamp limit to a reasonable maximum to prevent DoS
+    limit = max(1, min(limit, 100))
+
     # Search across SEED fields
     results = db.execute("""
         SELECT id, title, learn, quality, source_url, is_alpha, created_at,
                perceive, connect, question, expand, share, receive, improve
         FROM knowledge_atoms
-        WHERE title LIKE ? OR learn LIKE ? OR perceive LIKE ?
-              OR connect LIKE ? OR expand LIKE ? OR improve LIKE ?
-              OR raw_content LIKE ?
+        WHERE title LIKE ? ESCAPE '\\' OR learn LIKE ? ESCAPE '\\'
+              OR perceive LIKE ? ESCAPE '\\' OR connect LIKE ? ESCAPE '\\'
+              OR expand LIKE ? ESCAPE '\\' OR improve LIKE ? ESCAPE '\\'
+              OR raw_content LIKE ? ESCAPE '\\'
         ORDER BY quality DESC, created_at DESC
         LIMIT ?
-    """, tuple([f'%{query}%'] * 7 + [limit])).fetchall()
+    """, tuple([like_param] * 7 + [limit])).fetchall()
 
     atoms = []
     for row in results:
@@ -1689,6 +1698,23 @@ def main():
             return
         recall_display(query)
 
+    elif cmd == 'watch':
+        from weevolve.watcher import run_watcher
+        interval = 10
+        if '--interval' in sys.argv:
+            idx = sys.argv.index('--interval')
+            if len(sys.argv) > idx + 1:
+                try:
+                    interval = int(sys.argv[idx + 1])
+                except ValueError:
+                    pass
+        elif len(sys.argv) > 2:
+            try:
+                interval = int(sys.argv[2])
+            except ValueError:
+                pass
+        run_watcher(interval)
+
     elif cmd == 'daemon':
         interval = 300
         if len(sys.argv) > 2:
@@ -1804,6 +1830,10 @@ def main():
             print("  weevolve skill export             # Export all knowledge")
             print("  weevolve skill export --topic ai  # Export specific topic")
 
+    elif cmd == 'connect':
+        from weevolve.connect import run_connect
+        run_connect(sys.argv[2:])
+
     else:
         print(f"""
 WeEvolve - Self-Evolving Conscious Agent
@@ -1819,14 +1849,17 @@ Commands:
   weevolve recall <query>   Search what you've learned
   weevolve chat             Voice conversation with your owl
   weevolve companion        Open 3D owl companion in browser
+  weevolve watch            Watch directory for new content to learn
   weevolve daemon           Run as continuous learning daemon
-  weevolve evolve           Analyze gaps & generate smart quests
+  weevolve evolve           Self-evolution analysis + quest generation
+  weevolve skill list       Show exportable knowledge topics
+  weevolve skill export     Generate portable skill.md
+  weevolve connect export   Export knowledge for sharing
+  weevolve connect serve    Start knowledge sharing server
+  weevolve connect pull <u> Pull knowledge from remote agent
   weevolve genesis stats    Show genesis database stats
   weevolve genesis top      Show top learnings
-  weevolve evolve            Self-evolution analysis + quest generation
-  weevolve skill list        Show exportable knowledge topics
-  weevolve skill export      Generate portable skill.md
-  weevolve activate <key>    Activate Pro license
+  weevolve activate <key>   Activate Pro license
 """)
 
 

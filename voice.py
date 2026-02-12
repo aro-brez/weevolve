@@ -109,18 +109,26 @@ class OwlVoice:
 
     def _play_audio(self, audio_bytes: bytes):
         """Play audio bytes through system speakers (cross-platform)."""
-        tmp_path = Path(tempfile.gettempdir()) / "weevolve_voice.mp3"
-        tmp_path.write_bytes(audio_bytes)
+        # Use mkstemp for secure temp file creation (no race condition)
+        fd, tmp_path_str = tempfile.mkstemp(suffix=".mp3", prefix="weevolve_voice_")
+        try:
+            os.write(fd, audio_bytes)
+        finally:
+            os.close(fd)
 
+        tmp_path = Path(tmp_path_str)
         devnull = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
 
         if sys.platform == "darwin":
             subprocess.Popen(["afplay", str(tmp_path)], **devnull)
         elif sys.platform == "win32":
-            # Windows: use built-in PowerShell media player
+            # Windows: use start command with file path as argument (no shell interpolation)
             subprocess.Popen(
-                ["powershell", "-c",
-                 f"(New-Object Media.SoundPlayer '{tmp_path}').PlaySync()"],
+                ["powershell", "-NoProfile", "-Command",
+                 "Add-Type -AssemblyName System.Media; "
+                 "$p = New-Object System.Media.SoundPlayer($args[0]); "
+                 "$p.PlaySync()",
+                 str(tmp_path)],
                 **devnull,
             )
         else:

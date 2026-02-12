@@ -61,15 +61,20 @@ def export_skill(
             print("  Try: weevolve learn --text 'your first insight'")
         return ""
 
+    # Clamp limit to prevent excessive queries
+    limit = max(1, min(limit, 200))
+
     # Query learnings
     if topic:
+        # Escape LIKE special characters in user-supplied topic
+        safe_topic = topic.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
         rows = db.execute("""
             SELECT title, learn, question, expand, improve, quality, skills
             FROM knowledge_atoms
-            WHERE quality >= ? AND skills LIKE ?
+            WHERE quality >= ? AND skills LIKE ? ESCAPE '\\'
             ORDER BY quality DESC
             LIMIT ?
-        """, (min_quality, f'%"{topic}"%', limit)).fetchall()
+        """, (min_quality, f'%"{safe_topic}"%', limit)).fetchall()
     else:
         rows = db.execute("""
             SELECT title, learn, question, expand, improve, quality, skills
@@ -166,10 +171,20 @@ def export_skill(
 
     # Write to file
     if output_path:
-        out = Path(output_path)
+        out = Path(output_path).resolve()
+        # Prevent writing outside of home directory or current working directory
+        home = Path.home().resolve()
+        cwd = Path.cwd().resolve()
+        if not (str(out).startswith(str(home)) or str(out).startswith(str(cwd))):
+            if verbose:
+                print(f"  ERROR: output path must be under home directory or cwd")
+            return ""
     else:
         from weevolve.config import get_data_dir
-        out = get_data_dir() / f"skill-{topic_label}.md"
+        # Sanitize topic_label for use in filename (allow only alnum, dash, underscore)
+        import re as _re
+        safe_label = _re.sub(r'[^a-zA-Z0-9_-]', '_', topic_label)
+        out = get_data_dir() / f"skill-{safe_label}.md"
 
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(content)
