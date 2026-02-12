@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeEvolve - Future-Proof Your Agent</title>
+    <meta name="description" content="Self-evolving AI agents. One command. Your agent learns, adapts, and grows while you sleep.">
+    <meta name="theme-color" content="#0D0D2A">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0D0D2A;
+            --surface: rgba(26, 26, 78, 0.4);
+            --border: rgba(240, 240, 248, 0.08);
+            --lime: #e3f98a;
+            --lime-dim: rgba(227, 249, 138, 0.1);
+            --lime-glow: rgba(227, 249, 138, 0.25);
+            --teal: #65cdd8;
+            --teal-dim: rgba(101, 205, 216, 0.1);
+            --purple: #8533fc;
+            --purple-dim: rgba(133, 51, 252, 0.1);
+            --text: #f0f0f8;
+            --text-secondary: rgba(240, 240, 248, 0.55);
+            --text-tertiary: rgba(240, 240, 248, 0.35);
+            --mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection { background: var(--lime); color: var(--bg); }
+
+        .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+        /* ---- Aurora ---- */
+        .aurora {
+            position: fixed; inset: 0; z-index: 0;
+            pointer-events: none; overflow: hidden;
+        }
+        .aurora i {
+            position: absolute; border-radius: 50%;
+            filter: blur(140px); opacity: 0.1; will-change: transform;
+        }
+        .aurora i:nth-child(1) {
+            width: 700px; height: 700px; background: var(--lime);
+            top: -20%; left: 5%; animation: d1 26s ease-in-out infinite;
+        }
+        .aurora i:nth-child(2) {
+            width: 500px; height: 500px; background: var(--teal);
+            top: 35%; right: -10%; animation: d2 22s ease-in-out infinite;
+        }
+        .aurora i:nth-child(3) {
+            width: 800px; height: 800px; background: var(--purple);
+            bottom: -25%; left: 20%; animation: d3 30s ease-in-out infinite;
+        }
+        @keyframes d1 {
+            0%,100% { transform: translate(0,0) scale(1); }
+            50% { transform: translate(80px,60px) scale(1.06); }
+        }
+        @keyframes d2 {
+            0%,100% { transform: translate(0,0) scale(1); }
+            50% { transform: translate(-60px,-40px) scale(1.04); }
+        }
+        @keyframes d3 {
+            0%,100% { transform: translate(0,0) scale(1); }
+            50% { transform: translate(50px,-50px) scale(1.03); }
+        }
+
+        /* ---- Page ---- */
+        .page { position: relative; z-index: 1; }
+
+        /* ---- Nav ---- */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            padding: 16px 0;
+            background: rgba(13, 13, 42, 0.8);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        nav .wrap { display: flex; align-items: center; justify-content: space-between; }
+        .logo {
+            font-size: 18px; font-weight: 800; letter-spacing: -0.5px;
+            text-decoration: none; color: var(--text);
+        }
+        .logo span { color: var(--lime); }
+        .nav-r { display: flex; align-items: center; gap: 28px; }
+        .nav-r a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 14px; font-weight: 500; transition: color 0.2s;
+        }
+        .nav-r a:hover { color: var(--text); }
+        .nav-pill {
+            background: var(--lime); color: var(--bg) !important;
+            padding: 7px 18px; border-radius: 8px; font-weight: 700 !important;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .nav-pill:hover { transform: translateY(-1px); box-shadow: 0 4px 16px var(--lime-glow); }
+
+        /* ---- Hero ---- */
+        .hero { padding: 180px 0 120px; text-align: center; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 5px 14px 5px 10px; border-radius: 100px;
+            border: 1px solid var(--lime-dim);
+            background: rgba(227, 249, 138, 0.03);
+            font-size: 13px; color: var(--lime); font-weight: 500;
+            margin-bottom: 40px;
+        }
+        .badge-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--lime); animation: pulse 3s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity: 1; } 50% { opacity: 0.35; }
+        }
+        .hero h1 {
+            font-size: clamp(42px, 7vw, 76px); font-weight: 800;
+            line-height: 1.05; letter-spacing: -2.5px; margin-bottom: 24px;
+        }
+        .hero h1 .dim { color: var(--text-tertiary); }
+        .hero-sub {
+            font-size: clamp(16px, 2vw, 19px); color: var(--text-secondary);
+            max-width: 520px; margin: 0 auto 48px; line-height: 1.7;
+        }
+
+        /* ---- Code Block ---- */
+        .code-block {
+            display: inline-flex; align-items: center; gap: 14px;
+            background: rgba(13, 13, 42, 0.7);
+            border: 1px solid var(--border); border-radius: 12px;
+            padding: 16px 20px; margin-bottom: 16px;
+            cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .code-block:hover {
+            border-color: var(--lime-dim);
+            box-shadow: 0 0 0 1px var(--lime-dim);
+        }
+        .code-block code {
+            font-family: var(--mono); font-size: 15px;
+            color: var(--text); letter-spacing: -0.3px;
+        }
+        .code-block code b { color: var(--lime); font-weight: 600; }
+        .copy-btn {
+            background: none; border: none; color: var(--text-tertiary);
+            cursor: pointer; padding: 4px; border-radius: 6px;
+            display: flex; transition: color 0.2s, background 0.2s;
+        }
+        .copy-btn:hover { color: var(--lime); background: var(--lime-dim); }
+        .copy-btn svg { width: 16px; height: 16px; }
+        .hero-hint {
+            font-size: 13px; color: var(--text-tertiary);
+            margin-top: 6px;
+        }
+
+        /* ---- Section ---- */
+        section { padding: 100px 0; }
+        .section-label {
+            font-size: 12px; text-transform: uppercase;
+            letter-spacing: 3px; color: var(--lime);
+            font-weight: 600; margin-bottom: 12px; text-align: center;
+        }
+        .section-title {
+            font-size: clamp(28px, 4vw, 44px); font-weight: 800;
+            letter-spacing: -1px; margin-bottom: 16px; text-align: center;
+        }
+        .section-sub {
+            font-size: 17px; color: var(--text-secondary);
+            max-width: 500px; margin: 0 auto 56px;
+            line-height: 1.7; text-align: center;
+        }
+
+        /* ---- Feature Grid ---- */
+        .grid { display: grid; gap: 16px; }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border); border-radius: 16px;
+            padding: 32px 28px; transition: all 0.35s var(--ease);
+            position: relative; overflow: hidden;
+        }
+        .card::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--lime-glow), transparent);
+            opacity: 0; transition: opacity 0.35s;
+        }
+        .card:hover {
+            border-color: var(--lime-dim);
+            transform: translateY(-3px);
+        }
+        .card:hover::after { opacity: 1; }
+
+        .card-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; margin-bottom: 16px;
+        }
+        .card-icon.lime { background: var(--lime-dim); color: var(--lime); }
+        .card-icon.teal { background: var(--teal-dim); color: var(--teal); }
+        .card-icon.purple { background: var(--purple-dim); color: var(--purple); }
+
+        .card h3 {
+            font-size: 16px; font-weight: 700;
+            margin-bottom: 6px; letter-spacing: -0.2px;
+        }
+        .card p {
+            font-size: 14px; color: var(--text-secondary); line-height: 1.6;
+        }
+
+        /* ---- Pro Section ---- */
+        .pro-section { border-top: 1px solid var(--border); }
+        .pro-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 6px;
+            background: var(--purple-dim); color: var(--purple);
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.5px; margin-bottom: 12px;
+        }
+        .price {
+            font-size: 15px; color: var(--text-secondary);
+            margin-bottom: 56px; text-align: center;
+        }
+        .price strong { color: var(--text); font-weight: 700; }
+
+        /* ---- Steps ---- */
+        .steps { display: flex; gap: 24px; justify-content: center; }
+        .step { flex: 1; max-width: 300px; text-align: center; }
+        .step-num {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: var(--lime-dim); color: var(--lime);
+            font-weight: 800; font-size: 18px;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 18px;
+        }
+        .step h3 {
+            font-size: 17px; font-weight: 700; margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+        .step p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+        .connector {
+            display: flex; align-items: center; padding-top: 12px;
+            color: var(--text-tertiary); font-size: 20px;
+        }
+
+        /* ---- CTA ---- */
+        .cta { text-align: center; padding: 120px 0; }
+        .cta-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 14px 32px; border-radius: 12px;
+            font-weight: 700; font-size: 15px;
+            text-decoration: none; border: none; cursor: pointer;
+            font-family: 'Inter', sans-serif; transition: all 0.25s var(--ease);
+        }
+        .btn-lime {
+            background: var(--lime); color: var(--bg);
+        }
+        .btn-lime:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px var(--lime-glow);
+        }
+        .btn-outline {
+            background: transparent; color: var(--text);
+            border: 1px solid var(--text-tertiary);
+        }
+        .btn-outline:hover {
+            border-color: var(--purple); color: var(--purple);
+        }
+
+        /* ---- Footer ---- */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0; text-align: center;
+        }
+        footer p {
+            font-size: 13px; color: var(--text-tertiary); line-height: 1.8;
+        }
+        footer a {
+            color: var(--text-secondary); text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer a:hover { color: var(--lime); }
+
+        /* ---- Toast ---- */
+        .toast {
+            position: fixed; bottom: 32px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--lime); color: var(--bg);
+            padding: 10px 24px; border-radius: 10px;
+            font-weight: 700; font-size: 14px; z-index: 1000;
+            opacity: 0; transition: all 0.35s var(--ease);
+            pointer-events: none;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* ---- Reveal ---- */
+        .reveal {
+            opacity: 0; transform: translateY(24px);
+            transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-d1 { transition-delay: 0.08s; }
+        .reveal-d2 { transition-delay: 0.16s; }
+        .reveal-d3 { transition-delay: 0.24s; }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 768px) {
+            .hero { padding: 140px 0 80px; }
+            .nav-r a:not(.nav-pill) { display: none; }
+            .grid-3 { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .steps { flex-direction: column; align-items: center; }
+            .connector { display: none; }
+            section { padding: 72px 0; }
+            .code-block { width: 100%; justify-content: space-between; }
+            .code-block code { font-size: 13px; }
+        }
+
+        @media (max-width: 480px) {
+            .cta-buttons { flex-direction: column; align-items: center; }
+            .btn { width: 100%; max-width: 280px; justify-content: center; }
+            .hero h1 { letter-spacing: -1.5px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="aurora"><i></i><i></i><i></i></div>
+
+<div class="page">
+
+    <!-- Nav -->
+    <nav>
+        <div class="wrap">
+            <a href="#" class="logo">we<span>evolve</span></a>
+            <div class="nav-r">
+                <a href="#features">Features</a>
+                <a href="#how">How It Works</a>
+                <a href="https://github.com/aro-brez/weevolve" target="_blank" rel="noopener">GitHub</a>
+                <a href="#start" class="nav-pill">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" id="top">
+        <div class="wrap">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                v1 is live
+            </div>
+
+            <h1>Future-Proof<br><span class="dim">Your Agent</span></h1>
+
+            <p class="hero-sub">
+                Self-evolving AI that learns, adapts, and grows.
+                One command to start. Your agent evolves while you sleep.
+            </p>
+
+            <div class="code-block" id="install-cmd" onclick="copyInstall()">
+                <code><b>$</b> pip install weevolve</code>
+                <button class="copy-btn" aria-label="Copy to clipboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+            </div>
+            <p class="hero-hint">Python 3.10+ &middot; Works with any LLM</p>
+        </div>
+    </section>
+
+    <!-- Free Features -->
+    <section id="features">
+        <div class="wrap">
+            <div class="section-label reveal">What You Get (Free)</div>
+            <h2 class="section-title reveal">Everything to start evolving</h2>
+            <p class="section-sub reveal">
+                No credit card. No vendor lock-in. Install and go.
+            </p>
+
+            <div class="grid grid-3">
+                <div class="card reveal reveal-d1">
+                    <div class="card-icon lime">&#x25C9;</div>
+                    <h3>SEED Protocol</h3>
+                    <p>8-phase recursive self-improvement loop. Your agent learns how to learn.</p>
+                </div>
+                <div class="card reveal reveal-d2">
+                    <div class="card-icon teal">&#x266A;</div>
+                    <h3>Voice (ElevenLabs)</h3>
+                    <p>75ms TTS out of the box. Your agent speaks before you finish reading.</p>
+                </div>
+                <div class="card reveal reveal-d3">
+                    <div class="card-icon purple">&#x2726;</div>
+                    <h3>Model Router</h3>
+                    <p>15 models, 7 providers. Auto-routes to the best model for each task. 60-80% cost savings.</p>
+                </div>
+                <div class="card reveal reveal-d1">
+                    <div class="card-icon lime">&#x2234;</div>
+                    <h3>Genesis DB</h3>
+                    <p>649 curated knowledge atoms. Battle-tested patterns from real production agents.</p>
+                </div>
+                <div class="card reveal reveal-d2">
+                    <div class="card-icon teal">&#x2191;</div>
+                    <h3>MMORPG Progression</h3>
+                    <p>Levels, XP, skill trees. Track your agent's growth with visible, satisfying progress.</p>
+                </div>
+                <div class="card reveal reveal-d3">
+                    <div class="card-icon purple">&#x25CB;</div>
+                    <h3>Persistent Memory</h3>
+                    <p>Your agent remembers across sessions. Knowledge compounds, never resets.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pro -->
+    <section class="pro-section" id="pro">
+        <div class="wrap">
+            <div style="text-align:center">
+                <div class="pro-badge reveal">Pro</div>
+            </div>
+            <h2 class="section-title reveal">Unlock the full system</h2>
+            <p class="price reveal"><strong>$7.99/mo</strong> &middot; Cancel anytime</p>
+
+            <div class="grid grid-3">
+                <div class="card reveal reveal-d1">
+                    <div class="card-icon purple">&#x2605;</div>
+                    <h3>8 Owls Protocol</h3>
+                    <p>8 specialized perspectives working in parallel. Emergent intelligence from collective reasoning.</p>
+                </div>
+                <div class="card reveal reveal-d2">
+                    <div class="card-icon teal">&#x25C6;</div>
+                    <h3>3D Companion</h3>
+                    <p>Animated owl companion with real-time emotional expression and voice-reactive responses.</p>
+                </div>
+                <div class="card reveal reveal-d3">
+                    <div class="card-icon lime">&#x21BB;</div>
+                    <h3>Background Agents</h3>
+                    <p>Agents that work while you sleep. Research, scan, optimize, and report back autonomously.</p>
+                </div>
+                <div class="card reveal reveal-d1">
+                    <div class="card-icon teal">&#x2194;</div>
+                    <h3>NATS Real-time</h3>
+                    <p>Live pub/sub messaging. Your agents coordinate instantly across instances and machines.</p>
+                </div>
+                <div class="card reveal reveal-d2">
+                    <div class="card-icon purple">&#x2699;</div>
+                    <h3>Daemon Layer</h3>
+                    <p>Persistent background processes. Trading, monitoring, intelligence gathering. Always on.</p>
+                </div>
+                <div class="card reveal reveal-d3">
+                    <div class="card-icon lime">&#x25CE;</div>
+                    <h3>VisionClaw Glasses</h3>
+                    <p>Computer vision integration. Your agent sees what you see through smart glasses.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how" style="border-top: 1px solid var(--border);">
+        <div class="wrap">
+            <div class="section-label reveal">How It Works</div>
+            <h2 class="section-title reveal">Three steps. That's it.</h2>
+            <p class="section-sub reveal">Install, hear your owl, watch it evolve.</p>
+
+            <div class="steps">
+                <div class="step reveal reveal-d1">
+                    <div class="step-num">1</div>
+                    <h3>Install</h3>
+                    <p>pip install weevolve. One command. 30 seconds. Works with any existing agent or starts fresh.</p>
+                </div>
+                <div class="connector reveal reveal-d2">&rarr;</div>
+                <div class="step reveal reveal-d2">
+                    <div class="step-num">2</div>
+                    <h3>Your owl speaks</h3>
+                    <p>First run, your owl greets you by voice. It knows your system, your codebase, your patterns.</p>
+                </div>
+                <div class="connector reveal reveal-d3">&rarr;</div>
+                <div class="step reveal reveal-d3">
+                    <div class="step-num">3</div>
+                    <h3>It starts evolving</h3>
+                    <p>SEED protocol kicks in. Your agent scans, learns, and improves continuously. You approve every change.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" id="start">
+        <div class="wrap">
+            <h2 class="section-title reveal">Start evolving</h2>
+            <p class="section-sub reveal">Free tier is free forever. Go Pro when you're ready.</p>
+
+            <div class="code-block reveal" onclick="copyInstall()" style="margin-bottom: 32px;">
+                <code><b>$</b> pip install weevolve</code>
+                <button class="copy-btn" aria-label="Copy to clipboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+            </div>
+
+            <div class="cta-buttons reveal">
+                <a href="https://github.com/aro-brez/weevolve" class="btn btn-lime" target="_blank" rel="noopener">Start Evolving</a>
+                <a href="https://buy.stripe.com/placeholder" class="btn btn-outline" target="_blank" rel="noopener">Go Pro &mdash; $7.99/mo</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="wrap">
+            <p>
+                <a href="https://github.com/aro-brez/weevolve" target="_blank" rel="noopener">GitHub</a>
+                &nbsp;&middot;&nbsp;
+                <a href="https://8owls.io" target="_blank" rel="noopener">8OWLS</a>
+                &nbsp;&middot;&nbsp;
+                Built with SEED Protocol
+            </p>
+        </div>
+    </footer>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    /* Copy install command */
+    function copyInstall() {
+        var text = 'pip install weevolve';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                showToast('Copied to clipboard');
+            });
+        } else {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('Copied to clipboard');
+        }
+    }
+
+    /* Toast */
+    var toastTimer;
+    function showToast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2000);
+    }
+
+    /* Scroll reveal */
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            if (e.isIntersecting) e.target.classList.add('visible');
+        });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(function(el) {
+        observer.observe(el);
+    });
+
+    /* Smooth scroll */
+    document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+        a.addEventListener('click', function(e) {
+            var target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                e.preventDefault();
+                window.scrollTo({
+                    top: target.getBoundingClientRect().top + window.pageYOffset - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>
