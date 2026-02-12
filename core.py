@@ -17,6 +17,8 @@ Usage:
   python core.py watch                         # Watch ~/.weevolve/watch/ for new files
   python core.py watch --interval 5           # Custom poll interval in seconds
   python core.py daemon                       # Run as continuous daemon
+  python core.py teach                         # Socratic dialogue (learn by teaching)
+  python core.py teach <topic>                # Teach about a specific topic
   python core.py evolve                       # Analyze gaps & generate smart quests
   python core.py genesis export [path]        # Export genesis.db (PII-stripped)
   python core.py genesis export --curated     # Export curated (quality >= 0.7 only)
@@ -1802,6 +1804,11 @@ def main():
         email = sys.argv[3] if len(sys.argv) > 3 else ""
         activate_license(key, email)
 
+    elif cmd == 'teach':
+        from weevolve.teacher import run_teach
+        topic = ' '.join(sys.argv[2:]) if len(sys.argv) > 2 else None
+        run_teach(topic)
+
     elif cmd == 'quest':
         state = load_evolution_state()
         print(f"\n  Active Quests: {len(state.get('quests', []))}")
@@ -1847,6 +1854,8 @@ Commands:
   weevolve learn --file p   Learn from a file
   weevolve scan             Process new bookmarks
   weevolve recall <query>   Search what you've learned
+  weevolve teach            Socratic dialogue -- learn by teaching
+  weevolve teach <topic>    Teach about a specific topic
   weevolve chat             Voice conversation with your owl
   weevolve companion        Open 3D owl companion in browser
   weevolve watch            Watch directory for new content to learn
