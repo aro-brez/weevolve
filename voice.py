@@ -13,6 +13,7 @@ Architecture:
 import os
 import sys
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -28,6 +29,15 @@ VOICES = {
 
 DEFAULT_VOICE = "george"
 MODEL = "eleven_flash_v2_5"
+
+# ElevenLabs Expressive Mode presets — map emotion to voice_settings
+EXPRESSIVE_PRESETS = {
+    "excited": {"stability": 0.3, "similarity_boost": 0.7, "style": 0.8},
+    "calm": {"stability": 0.7, "similarity_boost": 0.8, "style": 0.3},
+    "curious": {"stability": 0.5, "similarity_boost": 0.6, "style": 0.5},
+    "proud": {"stability": 0.4, "similarity_boost": 0.7, "style": 0.7},
+    "warm": {"stability": 0.6, "similarity_boost": 0.8, "style": 0.5},
+}
 
 
 class OwlVoice:
@@ -58,18 +68,35 @@ class OwlVoice:
         except Exception:
             return False
 
-    def speak(self, text: str, play: bool = True) -> Optional[bytes]:
-        """Generate speech from text. Optionally play through speakers."""
+    def speak(self, text: str, play: bool = True, emotion: Optional[str] = None) -> Optional[bytes]:
+        """Generate speech from text. Optionally play through speakers.
+
+        Args:
+            text: The text to speak.
+            play: Whether to play audio through speakers.
+            emotion: Optional emotion preset for ElevenLabs Expressive Mode.
+                     One of: excited, calm, curious, proud, warm.
+        """
         if not self.is_available():
             return None
 
         try:
-            audio = self.client.text_to_speech.convert(
-                voice_id=self.voice_id,
-                text=text,
-                model_id=MODEL,
-                output_format="mp3_44100_128",
-            )
+            kwargs = {
+                "voice_id": self.voice_id,
+                "text": text,
+                "model_id": MODEL,
+                "output_format": "mp3_44100_128",
+            }
+
+            if emotion and emotion in EXPRESSIVE_PRESETS:
+                preset = EXPRESSIVE_PRESETS[emotion]
+                kwargs["voice_settings"] = {
+                    "stability": preset["stability"],
+                    "similarity_boost": preset["similarity_boost"],
+                    "style": preset["style"],
+                }
+
+            audio = self.client.text_to_speech.convert(**kwargs)
             audio_bytes = b"".join(audio)
 
             if play:
@@ -81,22 +108,29 @@ class OwlVoice:
             return None
 
     def _play_audio(self, audio_bytes: bytes):
-        """Play audio bytes through system speakers."""
-        tmp_path = Path("/tmp/weevolve_voice.mp3")
+        """Play audio bytes through system speakers (cross-platform)."""
+        tmp_path = Path(tempfile.gettempdir()) / "weevolve_voice.mp3"
         tmp_path.write_bytes(audio_bytes)
 
+        devnull = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+
         if sys.platform == "darwin":
+            subprocess.Popen(["afplay", str(tmp_path)], **devnull)
+        elif sys.platform == "win32":
+            # Windows: use built-in PowerShell media player
             subprocess.Popen(
-                ["afplay", str(tmp_path)],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                ["powershell", "-c",
+                 f"(New-Object Media.SoundPlayer '{tmp_path}').PlaySync()"],
+                **devnull,
             )
-        elif sys.platform == "linux":
-            subprocess.Popen(
-                ["mpv", "--no-video", str(tmp_path)],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+        else:
+            # Linux / other: try mpv, then aplay, then paplay
+            for player in [["mpv", "--no-video"], ["paplay"], ["aplay"]]:
+                try:
+                    subprocess.Popen(player + [str(tmp_path)], **devnull)
+                    break
+                except FileNotFoundError:
+                    continue
 
 
 # Module-level convenience
@@ -114,8 +148,8 @@ def voice_available() -> bool:
     return get_voice().is_available()
 
 
-def speak(text: str, play: bool = True) -> Optional[bytes]:
-    return get_voice().speak(text, play=play)
+def speak(text: str, play: bool = True, emotion: Optional[str] = None) -> Optional[bytes]:
+    return get_voice().speak(text, play=play, emotion=emotion)
 
 
 # Preset messages
@@ -123,15 +157,30 @@ def greet(level: int = 1, atoms: int = 0):
     """First-run owl greeting."""
     speak(
         f"Hey, I'm your owl. I've loaded {atoms} knowledge atoms "
-        f"and I'm ready to evolve with you. What should I learn first?"
+        f"and I'm ready to evolve with you. What should I learn first?",
+        emotion="warm",
     )
 
 
 def level_up(new_level: int):
     """Celebrate a level up."""
-    speak(f"Level {new_level}! You're evolving. Keep going.")
+    speak(f"Level {new_level}! You're evolving. Keep going.", emotion="excited")
 
 
 def alpha_discovery(topic: str):
     """Announce an alpha discovery."""
-    speak(f"Alpha discovery in {topic}. This is something unique.")
+    speak(f"Alpha discovery in {topic}. This is something unique.", emotion="proud")
+
+
+def encourage():
+    """Gentle nudge when the user hasn't learned in a while."""
+    speak(
+        "Hey, it's been a minute. Whenever you're ready, I'm here. "
+        "Even a small step counts.",
+        emotion="calm",
+    )
+
+
+def thinking():
+    """Short filler while SEED is processing."""
+    speak("Hmm, let me think about that.", emotion="curious")

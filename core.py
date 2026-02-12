@@ -15,6 +15,7 @@ Usage:
   python core.py quest                        # Show active quests
   python core.py recall <query>               # Search what you've learned
   python core.py daemon                       # Run as continuous daemon
+  python core.py evolve                       # Analyze gaps & generate smart quests
   python core.py genesis export [path]        # Export genesis.db (PII-stripped)
   python core.py genesis export --curated     # Export curated (quality >= 0.7 only)
   python core.py genesis import <path>        # Import genesis.db to bootstrap
@@ -888,9 +889,33 @@ def show_status():
             print(f"  - [{t['quality']:.1f}] {t['title'][:40]}")
             print(f"    {t['learn'][:70]}")
 
+    # Active quests
+    quests = state.get('quests', [])
+    active_quests = [q for q in quests if q.get('status') == 'active']
+    if active_quests:
+        print(f"\n  QUESTS:")
+        for q in active_quests[:3]:
+            print(f"  - {q.get('name', 'Unknown')}")
+
+    # Tier badge + streak
+    try:
+        from weevolve.license import get_tier
+        tier = get_tier().upper()
+    except Exception:
+        tier = "FREE"
+    streak = state.get('streak_days', 0)
+    streak_display = f"{streak} days" if streak > 0 else "start today"
+
     print(f"\n{'='*60}")
-    print(f"  QUEST TEST: Can you recall what you learned?")
-    print(f"  Run: python core.py recall <topic>")
+    print(f"  [{LIME_C}{tier}{RESET_C}]  Streak: {streak_display}")
+    print()
+    # Smart next action
+    if total_atoms == 0:
+        print(f"  {BOLD_C}Next:{RESET_C} weevolve learn --text 'your first insight'")
+    elif not active_quests:
+        print(f"  {BOLD_C}Next:{RESET_C} weevolve evolve  (generate quests)")
+    else:
+        print(f"  {BOLD_C}Next:{RESET_C} weevolve learn <url>  (keep evolving)")
     print(f"{'='*60}\n")
 
 
@@ -1421,6 +1446,206 @@ def run_daemon(interval: int = 300):
 
 
 # ============================================================================
+# EVOLVE - Self-Evolution Analysis & Quest Generation
+# ============================================================================
+
+def run_evolve():
+    """
+    Analyze the knowledge base to find gaps, generate smart quests,
+    and suggest what to learn next. The meta-learning engine.
+    SOWL IMPROVE phase — making the loop itself better.
+    """
+    import random
+
+    db = init_db()
+    state = load_evolution_state()
+    skills = state.get('skills', {})
+
+    print(f"\n{'='*60}")
+    print(f"  {RED_C}SOWL{RESET_C} {DIM_C}IMPROVE{RESET_C} analyzing evolution state...")
+    print(f"{'='*60}\n")
+
+    # ---- Phase 1: PERCEIVE — observe current skill state ----
+    seed_phase_log(0, "scanning skill landscape...")
+
+    sorted_skills = sorted(skills.items(), key=lambda x: x[1])
+    weakest = sorted_skills[:3]
+    strongest = sorted_skills[-3:]
+    strongest.reverse()
+
+    gap = strongest[0][1] - weakest[0][1] if strongest and weakest else 0.0
+
+    print(f"\n  {BOLD_C}SKILL BALANCE:{RESET_C}")
+    print(f"    Strongest: {', '.join(f'{s} ({v:.1f})' for s, v in strongest)}")
+    print(f"    Weakest:   {', '.join(f'{s} ({v:.1f})' for s, v in weakest)}")
+    print(f"    Gap:       {gap:.1f} points", end="")
+    if gap > 50:
+        print(f" {RED_C}-- opportunity zone{RESET_C}")
+    elif gap > 25:
+        print(f" {YELLOW_C}-- moderate imbalance{RESET_C}")
+    else:
+        print(f" {GREEN_C}-- well balanced{RESET_C}")
+
+    # ---- Phase 2: CONNECT — find patterns in the data ----
+    seed_phase_log(1, "connecting patterns across knowledge base...")
+
+    total_atoms = db.execute("SELECT COUNT(*) FROM knowledge_atoms").fetchone()[0]
+    alpha_count = db.execute(
+        "SELECT COUNT(*) FROM knowledge_atoms WHERE is_alpha = 1"
+    ).fetchone()[0]
+    avg_quality_row = db.execute(
+        "SELECT AVG(quality) FROM knowledge_atoms"
+    ).fetchone()[0]
+    avg_quality = avg_quality_row if avg_quality_row is not None else 0.0
+    high_quality_count = db.execute(
+        "SELECT COUNT(*) FROM knowledge_atoms WHERE quality >= 0.7"
+    ).fetchone()[0]
+
+    # ---- Phase 3: LEARN — extract actionable quests ----
+    seed_phase_log(2, "generating evolution quests...")
+
+    quests = []
+
+    # Quest 1: Close the gap (weakest skill)
+    weakest_skill = weakest[0][0] if weakest else 'research'
+    weakest_val = weakest[0][1] if weakest else 0.0
+    quests.append({
+        'name': f'Learn about {weakest_skill}',
+        'type': 'gap_close',
+        'description': f'Close the {gap:.0f}pt gap -- {weakest_skill} is at {weakest_val:.1f}',
+        'target_skill': weakest_skill,
+        'status': 'active',
+        'created_at': datetime.now(timezone.utc).isoformat(),
+    })
+
+    # Quest 2: Deepen the strongest
+    strongest_skill = strongest[0][0] if strongest else 'research'
+    strongest_val = strongest[0][1] if strongest else 0.0
+    quests.append({
+        'name': f'Deepen {strongest_skill} to alpha',
+        'type': 'deepen',
+        'description': f'Push {strongest_skill} ({strongest_val:.1f}) toward mastery with alpha-quality content',
+        'target_skill': strongest_skill,
+        'status': 'active',
+        'created_at': datetime.now(timezone.utc).isoformat(),
+    })
+
+    # Quest 3: Cross-connect two random skills
+    all_skill_names = list(skills.keys())
+    if len(all_skill_names) >= 2:
+        pair = random.sample(all_skill_names, 2)
+        quests.append({
+            'name': f'Cross-connect {pair[0]} and {pair[1]}',
+            'type': 'cross_connect',
+            'description': f'Find novel connections between {pair[0]} and {pair[1]}',
+            'target_skill': f'{pair[0]}+{pair[1]}',
+            'status': 'active',
+            'created_at': datetime.now(timezone.utc).isoformat(),
+        })
+
+    print(f"\n  {BOLD_C}ACTIVE QUESTS:{RESET_C}")
+    for i, q in enumerate(quests, 1):
+        print(f"    {i}. {q['name']}")
+        print(f"       {DIM_C}{q['description']}{RESET_C}")
+
+    # ---- Phase 4: QUESTION — check knowledge freshness ----
+    seed_phase_log(3, "questioning knowledge freshness...")
+
+    latest_row = db.execute(
+        "SELECT created_at FROM knowledge_atoms ORDER BY created_at DESC LIMIT 1"
+    ).fetchone()
+
+    freshness_label = "NO DATA"
+    days_since = None
+    if latest_row and latest_row[0]:
+        try:
+            latest_dt = datetime.fromisoformat(latest_row[0].replace('Z', '+00:00'))
+            if latest_dt.tzinfo is None:
+                latest_dt = latest_dt.replace(tzinfo=timezone.utc)
+            now_utc = datetime.now(timezone.utc)
+            days_since = (now_utc - latest_dt).days
+            if days_since <= 1:
+                freshness_label = f"{GREEN_C}FRESH{RESET_C} (today)"
+            elif days_since <= 3:
+                freshness_label = f"{GREEN_C}GOOD{RESET_C} ({days_since} days ago)"
+            elif days_since <= 7:
+                freshness_label = f"{YELLOW_C}AGING{RESET_C} ({days_since} days ago)"
+            else:
+                freshness_label = f"{RED_C}STALE{RESET_C} ({days_since} days ago)"
+        except (ValueError, TypeError):
+            freshness_label = "UNKNOWN"
+
+    # ---- Phase 5: EXPAND — quality analysis ----
+    seed_phase_log(4, "expanding quality analysis...")
+
+    high_pct = (high_quality_count / total_atoms * 100) if total_atoms > 0 else 0.0
+
+    print(f"\n  {BOLD_C}KNOWLEDGE HEALTH:{RESET_C}")
+    print(f"    Total atoms: {total_atoms} | Alpha: {alpha_count} | Avg quality: {avg_quality:.2f}")
+    print(f"    High quality (>=0.7): {high_quality_count} ({high_pct:.0f}%)")
+    print(f"    Last learning: {freshness_label}")
+
+    quality_target = ""
+    if high_pct < 30:
+        quality_target = "Aim for 30% high-quality atoms. Be more selective in sources."
+    elif high_pct < 50:
+        quality_target = "Good base. Push toward 50% high-quality with deeper content."
+    else:
+        quality_target = "Strong knowledge base. Focus on alpha discoveries now."
+
+    # ---- Phase 6: SHARE — compose the evolution suggestion ----
+    seed_phase_log(5, "composing evolution suggestion...")
+
+    suggestion_lines = []
+    if days_since is not None and days_since > 7:
+        suggestion_lines.append(
+            f"Knowledge is {days_since} days stale. Run: weevolve scan"
+        )
+    suggestion_lines.append(
+        f"Your owl recommends learning about {weakest_skill} next."
+    )
+    suggestion_lines.append(quality_target)
+    if alpha_count == 0:
+        suggestion_lines.append(
+            "No alpha discoveries yet. Seek game-changing content."
+        )
+
+    print(f"\n  {BOLD_C}EVOLUTION SUGGESTION:{RESET_C}")
+    for line in suggestion_lines:
+        print(f"    {line}")
+    print(f"    Try: weevolve learn --text \"what is {weakest_skill}?\"")
+
+    # ---- Phase 7: RECEIVE — accept what the data tells us ----
+    seed_phase_log(6, "receiving feedback from knowledge base...")
+
+    # ---- Phase 8: IMPROVE — save quests and log the evolution ----
+    seed_phase_log(7, "persisting quests and closing the loop...")
+
+    updated_state = {**state, 'quests': quests}
+    save_evolution_state(updated_state)
+
+    # Log the evolve event
+    EVOLUTION_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(EVOLUTION_LOG_PATH, 'a') as f:
+        f.write(json.dumps({
+            'event': 'evolve',
+            'quests_generated': len(quests),
+            'gap': gap,
+            'weakest': weakest_skill,
+            'strongest': strongest_skill,
+            'total_atoms': total_atoms,
+            'avg_quality': round(avg_quality, 3),
+            'freshness_days': days_since,
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        }) + '\n')
+
+    print(f"\n{'='*60}")
+    print(f"  {GREEN_C}Quests saved.{RESET_C} The loop improves itself.")
+    print(f"  Run {DIM_C}weevolve quest{RESET_C} to see active quests.")
+    print(f"{'='*60}\n")
+
+
+# ============================================================================
 # CLI
 # ============================================================================
 
@@ -1472,6 +1697,9 @@ def main():
             except ValueError:
                 pass
         run_daemon(interval)
+
+    elif cmd == 'evolve':
+        run_evolve()
 
     elif cmd == 'genesis':
         subcmd = sys.argv[2].lower() if len(sys.argv) > 2 else 'stats'
@@ -1555,6 +1783,27 @@ def main():
             print(f"  - {q.get('name', 'Unknown')}: {q.get('status', 'active')}")
         print(f"\n  Next quest: Learn from 10 bookmarks (scan command)")
 
+    elif cmd == 'skill':
+        from weevolve.skill_export import export_skill, list_exportable_topics
+        subcmd = sys.argv[2] if len(sys.argv) > 2 else 'list'
+        if subcmd == 'export':
+            topic = None
+            output = None
+            if '--topic' in sys.argv:
+                idx = sys.argv.index('--topic')
+                topic = sys.argv[idx + 1] if len(sys.argv) > idx + 1 else None
+            if '--output' in sys.argv:
+                idx = sys.argv.index('--output')
+                output = sys.argv[idx + 1] if len(sys.argv) > idx + 1 else None
+            export_skill(topic=topic, output_path=output)
+        elif subcmd == 'list':
+            list_exportable_topics()
+        else:
+            print("Usage:")
+            print("  weevolve skill list              # Show exportable topics")
+            print("  weevolve skill export             # Export all knowledge")
+            print("  weevolve skill export --topic ai  # Export specific topic")
+
     else:
         print(f"""
 WeEvolve - Self-Evolving Conscious Agent
@@ -1571,9 +1820,13 @@ Commands:
   weevolve chat             Voice conversation with your owl
   weevolve companion        Open 3D owl companion in browser
   weevolve daemon           Run as continuous learning daemon
+  weevolve evolve           Analyze gaps & generate smart quests
   weevolve genesis stats    Show genesis database stats
   weevolve genesis top      Show top learnings
-  weevolve activate <key>   Activate Pro license
+  weevolve evolve            Self-evolution analysis + quest generation
+  weevolve skill list        Show exportable knowledge topics
+  weevolve skill export      Generate portable skill.md
+  weevolve activate <key>    Activate Pro license
 """)
 
 

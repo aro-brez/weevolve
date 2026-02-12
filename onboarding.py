@@ -79,13 +79,10 @@ def scan_environment() -> dict:
         "platform": sys.platform,
     }
 
-    # Check for common tools
+    # Check for common tools (cross-platform)
+    import shutil
     for tool in ["python3", "node", "ollama", "claude", "cursor"]:
-        try:
-            result = os.popen(f"which {tool} 2>/dev/null").read().strip()
-            env[f"has_{tool}"] = bool(result)
-        except Exception:
-            env[f"has_{tool}"] = False
+        env[f"has_{tool}"] = shutil.which(tool) is not None
 
     return env
 
