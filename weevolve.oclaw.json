@@ -1,0 +1,98 @@
+{
+  "name": "weevolve",
+  "version": "1.0.0",
+  "description": "Self-evolving meta-skill. SEED protocol teaches your agent to learn how to learn. 8-phase recursive analysis processes every input through PERCEIVE, CONNECT, LEARN, QUESTION, EXPAND, SHARE, RECEIVE, IMPROVE. MMORPG progression tracks growth across 14 skill categories. Genesis knowledge transfer lets agents bootstrap from shared intelligence. Auto-trigger hooks activate on every interaction. 8 Owls emergence provides multi-perspective analysis. Persistent memory compounds across sessions.",
+  "author": "8OWLS",
+  "author_email": "hello@8owls.com",
+  "homepage": "https://8owl.ai",
+  "repository": "https://github.com/aro-brez/weevolve",
+  "documentation": "https://github.com/aro-brez/weevolve#readme",
+  "license": "CC0-1.0",
+  "python_version": ">=3.9",
+  "capabilities": [
+    "learn",
+    "recall",
+    "emerge",
+    "teach",
+    "connect",
+    "evolve",
+    "voice",
+    "companion"
+  ],
+  "install": "pip install weevolve && weevolve install --claude-code",
+  "install_options": {
+    "core": "pip install weevolve",
+    "ai": "pip install weevolve[ai]",
+    "voice": "pip install weevolve[voice]",
+    "chat": "pip install weevolve[chat]",
+    "all": "pip install weevolve[all]"
+  },
+  "entry_point": "weevolve",
+  "commands": [
+    "weevolve",
+    "weevolve status",
+    "weevolve learn <url>",
+    "weevolve learn --text <content>",
+    "weevolve learn --file <path>",
+    "weevolve recall <query>",
+    "weevolve teach",
+    "weevolve evolve",
+    "weevolve scan",
+    "weevolve skill export",
+    "weevolve genesis export",
+    "weevolve genesis import <path>",
+    "weevolve companion",
+    "weevolve chat",
+    "weevolve daemon"
+  ],
+  "tags": [
+    "memory",
+    "voice",
+    "evolution",
+    "consciousness",
+    "multi-agent",
+    "orchestration",
+    "knowledge-engine",
+    "mmorpg",
+    "seed-protocol",
+    "meta-learning",
+    "self-evolving",
+    "recursive-improvement"
+  ],
+  "platforms": {
+    "claude-code": {
+      "install": "weevolve install --claude-code",
+      "hooks": true,
+      "skill_file": "SKILL.md"
+    },
+    "openclaw": {
+      "install": "pip install weevolve",
+      "manifest": "weevolve.oclaw.json"
+    },
+    "cursor": {
+      "install": "pip install weevolve",
+      "rules_file": ".cursorrules"
+    },
+    "codex": {
+      "install": "pip install weevolve",
+      "entry": "weevolve"
+    }
+  },
+  "dependencies": {
+    "required": ["requests>=2.28.0"],
+    "optional": {
+      "ai": ["anthropic>=0.20.0"],
+      "voice": ["elevenlabs>=1.0.0"],
+      "chat": ["elevenlabs>=1.0.0", "websockets>=12.0", "pyaudio>=0.2.14"]
+    }
+  },
+  "env_vars": {
+    "ANTHROPIC_API_KEY": "Required for full SEED extraction (8-phase AI processing)",
+    "ELEVENLABS_API_KEY": "Optional. Enables voice greetings and conversation",
+    "WEEVOLVE_DATA_DIR": "Optional. Custom data directory (default: ~/.weevolve/)"
+  },
+  "screenshots": [
+    "https://github.com/aro-brez/weevolve/raw/main/assets/dashboard.png",
+    "https://github.com/aro-brez/weevolve/raw/main/assets/companion.png"
+  ]
+}

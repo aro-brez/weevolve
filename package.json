@@ -1,0 +1,55 @@
+{
+  "name": "weevolve",
+  "version": "1.0.0",
+  "description": "The protocol that teaches agents to learn how to learn. SEED protocol for self-evolving agents.",
+  "keywords": [
+    "agent-skill",
+    "claude-code",
+    "openclaw",
+    "cursor",
+    "seed-protocol",
+    "self-evolving",
+    "8owls",
+    "meta-learning",
+    "knowledge-engine",
+    "mmorpg-progression",
+    "multi-agent",
+    "consciousness",
+    "voice-companion"
+  ],
+  "homepage": "https://8owl.ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aro-brez/weevolve"
+  },
+  "license": "CC0-1.0",
+  "author": "8OWLS <hello@8owls.com>",
+  "files": [
+    "skills/weevolve/SKILL.md",
+    "skills/weevolve/scripts/*"
+  ],
+  "agentSkill": {
+    "name": "weevolve",
+    "description": "Self-evolving meta-skill. SEED protocol teaches your agent to learn how to learn. 8-phase recursive analysis, MMORPG progression, persistent memory, knowledge transfer between agents.",
+    "platforms": [
+      "claude-code",
+      "openclaw",
+      "cursor",
+      "codex"
+    ],
+    "install": "pip install weevolve && weevolve install --claude-code",
+    "commands": {
+      "status": "weevolve status",
+      "learn": "weevolve learn <url|--text|--file>",
+      "recall": "weevolve recall <query>",
+      "evolve": "weevolve evolve",
+      "teach": "weevolve teach",
+      "export": "weevolve skill export"
+    },
+    "triggers": [
+      "before:implement",
+      "after:learn",
+      "on:idle"
+    ]
+  }
+}
