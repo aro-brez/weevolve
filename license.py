@@ -8,6 +8,7 @@ Future: webhook validation on activate + periodic refresh.
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 from . import config
 
@@ -26,7 +27,7 @@ PRO_FEATURES = frozenset({
 ALL_FEATURES = FREE_FEATURES | PRO_FEATURES
 
 
-def _read_license() -> dict | None:
+def _read_license() -> Optional[dict]:
     """Read and return license data, or None if missing/corrupt."""
     if not LICENSE_PATH.exists():
         return None

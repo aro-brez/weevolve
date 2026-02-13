@@ -19,6 +19,7 @@ import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 from unittest.mock import patch
 
 import pytest
@@ -269,7 +270,7 @@ PRO_FEATURES = frozenset({
 ALL_FEATURES = FREE_FEATURES | PRO_FEATURES
 
 
-def _read_license(license_path: Path) -> dict | None:
+def _read_license(license_path: Path) -> Optional[dict]:
     """Read and return license data, or None if missing/corrupt."""
     if not license_path.exists():
         return None
@@ -581,7 +582,7 @@ def _onboard_is_first_run(data_dir_path: Path) -> bool:
     return not (data_dir_path / "onboarding.json").exists()
 
 
-def _seed_phase_log(phase_idx: int, detail: str = "") -> str | None:
+def _seed_phase_log(phase_idx: int, detail: str = "") -> Optional[str]:
     """Return the formatted string instead of printing."""
     if phase_idx < 0 or phase_idx >= len(SEED_PHASES):
         return None

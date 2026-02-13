@@ -86,6 +86,17 @@ def load_api_key():
     creds_path = DATA_DIR / 'credentials.json'
     if creds_path.exists():
         try:
+            # Verify credentials file is not world-readable (Unix only)
+            if hasattr(os, 'stat'):
+                import stat
+                file_mode = os.stat(creds_path).st_mode
+                if file_mode & (stat.S_IRGRP | stat.S_IROTH):
+                    print(
+                        f"  [SECURITY] {creds_path} is readable by other users. "
+                        f"Run: chmod 600 {creds_path}",
+                        file=__import__('sys').stderr,
+                    )
+                    return
             with open(creds_path) as f:
                 creds = json.load(f)
             api_key = creds.get('anthropic', {}).get('api_key', '')

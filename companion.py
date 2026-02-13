@@ -74,8 +74,12 @@ class CompanionHandler(http.server.SimpleHTTPRequestHandler):
             super().do_GET()
 
     def do_POST(self):
+        MAX_BODY_SIZE = 4096  # 4KB max for state updates
         if self.path == "/api/state":
             length = int(self.headers.get("Content-Length", 0))
+            if length > MAX_BODY_SIZE:
+                self._json_response({"ok": False, "error": "payload too large"}, code=413)
+                return
             body = self.rfile.read(length) if length else b"{}"
             try:
                 data = json.loads(body)
@@ -96,13 +100,13 @@ class CompanionHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Origin", "http://localhost:8888")
         self.end_headers()
         self.wfile.write(payload)
 
     def do_OPTIONS(self):
         self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Origin", "http://localhost:8888")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
@@ -122,7 +126,7 @@ def launch_companion():
         print(f"  ERROR: companion directory missing at {COMPANION_DIR}")
         return
 
-    server = _ReusableTCPServer(("", PORT), CompanionHandler)
+    server = _ReusableTCPServer(("127.0.0.1", PORT), CompanionHandler)
 
     def _shutdown(signum, frame):
         print("\n  Companion shutting down...")
