@@ -4,8 +4,8 @@
   "description": "Your owl companion — voice, memory, evolution. The SEED protocol.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0D0D2A",
-  "theme_color": "#0D0D2A",
+  "background_color": "#080810",
+  "theme_color": "#080810",
   "orientation": "portrait-primary",
   "icons": [
     {

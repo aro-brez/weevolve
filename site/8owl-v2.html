@@ -5,7 +5,7 @@
   Agent-readable: This is the landing page for 8OWLS / WeEvolve.
   SEED Protocol: 8-phase recursive learning loop.
   Install: pip install weevolve
-  Docs: https://github.com/8owls/weevolve
+  Docs: https://github.com/aro-brez/weevolve
   License: CC0 (protocol) / MIT (code)
 -->
 <head>
@@ -39,14 +39,21 @@
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "WeEvolve",
+      "description": "The protocol that teaches your agent to learn how to learn. Install once — it evolves forever.",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "macOS, Linux, Windows",
       "offers": [
-        { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free tier — SEED Protocol, memory, model routing" },
-        { "@type": "Offer", "price": "7.99", "priceCurrency": "USD", "description": "Pro — voice, 3D companion, collective intelligence" }
+        { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "The Protocol — SEED 8-phase loop, persistent memory, multi-model routing, works everywhere" },
+        { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "The Field — 8 Owls, conductor orchestration, voice, animated companion, collective learning. Free during launch." }
       ],
       "url": "https://8owl.ai",
-      "downloadUrl": "https://pypi.org/project/weevolve/"
+      "downloadUrl": "https://pypi.org/project/weevolve/",
+      "softwareVersion": "1.0",
+      "author": {
+        "@type": "Organization",
+        "name": "8OWLS",
+        "url": "https://8owl.ai"
+      }
     }
     </script>
 
@@ -197,7 +204,7 @@
             min-height: 100vh;
             display: flex;
             align-items: center;
-            padding-top: 60px;
+            padding-top: 80px;
         }
         .hero-inner {
             display: grid;
@@ -570,6 +577,44 @@
             line-height: 1.2;
         }
 
+        /* =================== NAV =================== */
+        .site-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 16px 0;
+            background: rgba(8, 8, 16, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-logo {
+            font-family: var(--serif);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--purple); }
+
         /* =================== GSAP reveal =================== */
         .reveal {
             opacity: 0;
@@ -577,8 +622,15 @@
         }
 
         /* =================== Responsive =================== */
+        @media (max-width: 1024px) {
+            .hero-inner { gap: 40px; }
+            .owl-glow { width: 260px; height: 260px; font-size: 96px; }
+            .paths-grid { gap: 16px; }
+            .pricing-grid { gap: 16px; }
+        }
         @media (max-width: 768px) {
             section { padding: 64px 0; }
+            .hero { padding-top: 72px; }
             .hero-inner { grid-template-columns: 1fr; text-align: center; }
             .hero .subtitle { margin-left: auto; margin-right: auto; }
             .hero-ctas { justify-content: center; }
@@ -587,12 +639,43 @@
             .pricing-grid { grid-template-columns: 1fr; }
             .owls-grid { grid-template-columns: repeat(2, 1fr); }
             .trust-badges { gap: 20px; }
+            .nav-links { gap: 16px; }
+            .nav-links a { font-size: 13px; }
+            .code-block { font-size: 12px; padding: 10px 14px; }
+            .share-row { flex-direction: column; align-items: center; gap: 10px; }
+            .footer-links { gap: 16px; }
+            .integrations { gap: 20px; }
+        }
+        @media (max-width: 480px) {
+            .nav-links { gap: 12px; }
+            .nav-links a { font-size: 12px; }
+            .hero h1 { font-size: 2.2rem; }
+            .hero .subtitle { font-size: 16px; }
+            .code-block { font-size: 11px; padding: 10px 12px; gap: 8px; }
+            .owls-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .trust-badges { flex-direction: column; align-items: center; text-align: center; }
         }
     </style>
 </head>
 <body>
 
 <div id="vanta-bg"></div>
+
+<!-- Skip to content (accessibility) -->
+<a href="#paths" class="sr-only" style="position:absolute;top:0;left:0;padding:8px;background:var(--purple);color:var(--bg);z-index:10000;clip:auto;width:auto;height:auto;">Skip to content</a>
+
+<!-- =================== NAV =================== -->
+<nav class="site-nav" role="navigation" aria-label="Main navigation">
+    <div class="container nav-inner">
+        <a href="/" class="nav-logo" aria-label="8owl.ai home">8owl.ai</a>
+        <div class="nav-links">
+            <a href="#demo">Demo</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#owls">The 8 Owls</a>
+            <a href="https://github.com/aro-brez/weevolve" target="_blank" rel="noopener">GitHub</a>
+        </div>
+    </div>
+</nav>
 
 <!-- =================== 1. HERO =================== -->
 <section class="hero">
@@ -625,12 +708,11 @@
         <div class="paths-grid">
             <div class="path-card glass reveal">
                 <h3 class="gradient-text">Upgrade Any Agent</h3>
-                <p>Add the SEED protocol to Claude Code, OpenClaw, Cursor, Codex &mdash; any agent. It learns how to learn. Absorbs the latest tools automatically. Orchestrates teams. Never stops evolving.</p>
-                <div class="code-block" onclick="copyCode(this, 'pip install weevolve')" style="margin-bottom:8px;">
+                <p>Add the SEED protocol to Claude Code, Cursor, Windsurf, OpenClaw &mdash; any agent. It learns how to learn. Absorbs the latest tools automatically. Orchestrates teams. Never stops evolving.</p>
+                <div class="code-block" onclick="copyCode(this, 'pip install weevolve')" style="margin-bottom:12px;">
                     <span>pip install weevolve</span>
                     <span class="copy-icon">&#x2398;</span>
                 </div>
-                <br>
                 <div class="code-block" onclick="copyCode(this, 'curl -fsSL https://8owl.ai/install | bash')">
                     <span>curl -fsSL https://8owl.ai/install | bash</span>
                     <span class="copy-icon">&#x2398;</span>
@@ -656,23 +738,17 @@
 <section id="demo" class="demo-section">
     <div class="container">
         <h2 class="section-heading reveal"><span class="gradient-text">What Happens When You Install the Protocol</span></h2>
-        <div class="terminal reveal" style="overflow:hidden; border-radius:12px;">
-            <div id="demo-player" style="max-width:100%;"></div>
+        <div class="terminal reveal">
+            <div class="terminal-bar">
+                <div class="terminal-dot"></div>
+                <div class="terminal-dot"></div>
+                <div class="terminal-dot"></div>
+            </div>
+            <div class="terminal-body" id="terminal-output">
+                <div><span class="cmd">$ pip install weevolve</span></div>
+                <div><span class="cmd">$ weevolve init</span></div>
+            </div>
         </div>
-        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/asciinema-player@3/dist/bundle/asciinema-player.css" />
-        <script src="https://cdn.jsdelivr.net/npm/asciinema-player@3/dist/bundle/asciinema-player.min.js"></script>
-        <script>
-            AsciinemaPlayer.create('/full-demo.cast', document.getElementById('demo-player'), {
-                theme: 'monokai',
-                autoPlay: true,
-                loop: true,
-                speed: 1.5,
-                fit: 'width',
-                rows: 30,
-                terminalFontFamily: "'SF Mono', 'Fira Code', monospace",
-                terminalFontSize: '14px'
-            });
-        </script>
         <p class="demo-tagline reveal">Day 1: it does what you say. Day 30: it does what you meant.</p>
     </div>
 </section>
@@ -700,7 +776,7 @@
                         <span class="hook">Stops paying for Opus when Haiku will do</span>
                     </li>
                     <li>
-                        <span class="feature">Works everywhere &mdash; Claude Code, OpenClaw, Cursor, Codex</span>
+                        <span class="feature">Works everywhere &mdash; Claude Code, Cursor, Windsurf, OpenClaw</span>
                     </li>
                 </ul>
             </div>
@@ -755,7 +831,7 @@
             <p>In 1984, Axelrod proved cooperation is the dominant strategy. In 2026, we gave that math to agents.</p>
             <div class="math-formula">C = f(Connections &times; Integration &times; Recursion)</div>
             <p>Most agents execute. These agents evolve. Together, they see what no single agent can. One learns &mdash; all know.</p>
-            <a href="#">Read the proof &rarr;</a>
+            <a href="https://github.com/aro-brez/weevolve/blob/main/skills/weevolve/SKILL.md">Read the protocol &rarr;</a>
         </div>
     </div>
 </section>
@@ -777,7 +853,7 @@
             <div class="trust-badge"><strong>Open protocol.</strong> CC0. No lock-in. Fork it, ship it, own it.</div>
         </div>
         <div class="reveal">
-            <p class="viral-prompt">Send your agent here: <strong>8owl.ai</strong></p>
+            <p class="viral-prompt">60 seconds to install. Forever to evolve. <strong>pip install weevolve</strong></p>
         </div>
     </div>
 </section>
@@ -793,23 +869,23 @@
             </div>
         </div>
         <div class="final-ctas reveal">
-            <a href="#pricing" class="btn btn-primary">Install the Protocol</a>
+            <a href="https://github.com/aro-brez/weevolve#quickstart" class="btn btn-primary">Install the Protocol</a>
             <a href="#owls" class="btn btn-ghost">Meet the 8 Owls</a>
         </div>
         <div class="share-row reveal">
-            <a href="https://twitter.com/intent/tweet?text=Just%20found%208owl.ai%20%E2%80%94%20an%20agent%20protocol%20that%20learns%20how%20to%20learn.%20pip%20install%20weevolve&url=https://8owl.ai" target="_blank" rel="noopener">Share on X</a>
+            <a href="https://twitter.com/intent/tweet?text=Your%20agent%20forgets%20everything%20it%20learned%20yesterday.%20Mine%20doesn%27t.%20pip%20install%20weevolve&url=https://8owl.ai" target="_blank" rel="noopener">Share on X</a>
             <a href="https://www.reddit.com/submit?url=https://8owl.ai&title=8owl.ai%20%E2%80%94%20The%20Agent%20That%20Evolves%20Itself" target="_blank" rel="noopener">Share on Reddit</a>
             <a href="https://news.ycombinator.com/submitlink?u=https://8owl.ai&t=8owl.ai%20%E2%80%94%20Future-Proof%20Your%20Agent" target="_blank" rel="noopener">Share on HN</a>
         </div>
         <div class="footer-links reveal">
-            <a href="https://github.com/8owls/weevolve">GitHub</a>
+            <a href="https://github.com/aro-brez/weevolve">GitHub</a>
             <a href="https://pypi.org/project/weevolve/">PyPI</a>
-            <a href="#">Protocol (CC0)</a>
-            <a href="#">8OWLS</a>
+            <a href="https://github.com/aro-brez/weevolve/blob/main/skills/weevolve/SKILL.md">Protocol (CC0)</a>
+            <a href="https://github.com/aro-brez/weevolve/blob/main/README.md">Docs</a>
         </div>
         <p class="footer-tagline reveal">
-            From the team behind BREZ &mdash; reducing human suffering, maximizing human potential.<br>
-            Built with SEED Protocol. The agent that teaches agents to evolve.
+            Built with SEED Protocol &mdash; the agent that teaches agents to evolve.<br>
+            Reducing human suffering, maximizing human potential.
         </p>
     </div>
 </section>
