@@ -656,16 +656,23 @@
 <section id="demo" class="demo-section">
     <div class="container">
         <h2 class="section-heading reveal"><span class="gradient-text">What Happens When You Install the Protocol</span></h2>
-        <div class="terminal reveal">
-            <div class="terminal-bar">
-                <div class="terminal-dot"></div>
-                <div class="terminal-dot"></div>
-                <div class="terminal-dot"></div>
-            </div>
-            <div class="terminal-body" id="terminal-output">
-                <div class="cmd">$ weevolve</div>
-            </div>
+        <div class="terminal reveal" style="overflow:hidden; border-radius:12px;">
+            <div id="demo-player" style="max-width:100%;"></div>
         </div>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/asciinema-player@3/dist/bundle/asciinema-player.css" />
+        <script src="https://cdn.jsdelivr.net/npm/asciinema-player@3/dist/bundle/asciinema-player.min.js"></script>
+        <script>
+            AsciinemaPlayer.create('/full-demo.cast', document.getElementById('demo-player'), {
+                theme: 'monokai',
+                autoPlay: true,
+                loop: true,
+                speed: 1.5,
+                fit: 'width',
+                rows: 30,
+                terminalFontFamily: "'SF Mono', 'Fira Code', monospace",
+                terminalFontSize: '14px'
+            });
+        </script>
         <p class="demo-tagline reveal">Day 1: it does what you say. Day 30: it does what you meant.</p>
     </div>
 </section>
