@@ -2,506 +2,776 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WeEvolve - Owl Companion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0D0D2A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>8OWLS Companion</title>
+<link rel="manifest" href="/manifest.json">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#0D0D2A;color:#e3f98a;font-family:'SF Mono',Menlo,monospace;overflow:hidden;height:100vh;width:100vw}
-  #canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+  /* ========================================
+     8OWLS COMPANION — CSS-ONLY OWL
+     Brand: #0D0D2A (dark), #e3f98a (lime), #8533fc (purple), #65cdd8 (teal)
+     ======================================== */
 
-  /* Stats overlay - bottom left */
-  #stats{position:fixed;bottom:20px;left:20px;z-index:10;background:rgba(13,13,42,0.85);
-    border:1px solid rgba(227,249,138,0.25);border-radius:12px;padding:16px 20px;
-    min-width:260px;backdrop-filter:blur(12px);pointer-events:none}
-  #stats h2{font-size:13px;letter-spacing:2px;color:#65cdd8;margin-bottom:10px;text-transform:uppercase}
-  .stat-row{display:flex;justify-content:space-between;align-items:center;margin:4px 0;font-size:12px}
-  .stat-label{color:#aaa}
-  .stat-val{color:#e3f98a;font-weight:bold}
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
-  /* XP Bar */
-  .xp-bar-outer{width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:8px 0}
-  .xp-bar-inner{height:100%;background:linear-gradient(90deg,#8533fc,#e3f98a);border-radius:3px;transition:width .6s ease}
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /* SEED Phase */
-  .seed-phase{display:flex;gap:4px;margin:8px 0 4px;flex-wrap:wrap}
-  .seed-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.12);transition:all .3s}
-  .seed-dot.active{background:#e3f98a;box-shadow:0 0 8px #e3f98a}
+  :root {
+    --bg: #0D0D2A;
+    --bg-card: rgba(13, 13, 42, 0.85);
+    --lime: #e3f98a;
+    --purple: #8533fc;
+    --teal: #65cdd8;
+    --gold: #FFD700;
+    --danger: #ff6b6b;
+    --text: #e8e8f0;
+    --text-dim: #888;
+    --border: rgba(227, 249, 138, 0.15);
+  }
 
-  /* Skill bars */
-  .skill{margin:3px 0}
-  .skill-name{font-size:10px;color:#888;display:flex;justify-content:space-between}
-  .skill-bar-outer{width:100%;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:2px}
-  .skill-bar-inner{height:100%;border-radius:2px;transition:width .8s ease}
+  html, body {
+    height: 100%; width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+  }
 
-  /* State indicator - top right */
-  #state-indicator{position:fixed;top:20px;right:20px;z-index:10;
-    background:rgba(13,13,42,0.85);border:1px solid rgba(101,205,216,0.3);
-    border-radius:20px;padding:8px 18px;backdrop-filter:blur(12px);
-    display:flex;align-items:center;gap:8px;font-size:13px;pointer-events:none}
-  #state-dot{width:8px;height:8px;border-radius:50%;background:#65cdd8;
-    box-shadow:0 0 10px #65cdd8;animation:pulse-dot 2s ease infinite}
-  @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+  body {
+    display: flex;
+    flex-direction: column;
+  }
 
-  /* Title */
-  #title{position:fixed;top:20px;left:20px;z-index:10;font-size:11px;letter-spacing:3px;
-    color:rgba(227,249,138,0.4);text-transform:uppercase;pointer-events:none}
+  /* ---- BACKGROUND PARTICLES (CSS-only) ---- */
+  .bg-particles {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  }
+  .bg-particles span {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: var(--lime);
+    border-radius: 50%;
+    opacity: 0;
+    animation: float-up linear infinite;
+  }
+  @keyframes float-up {
+    0%   { opacity: 0; transform: translateY(0) scale(1); }
+    10%  { opacity: 0.4; }
+    90%  { opacity: 0.1; }
+    100% { opacity: 0; transform: translateY(-100vh) scale(0.3); }
+  }
+
+  /* ---- HEADER ---- */
+  .header {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px;
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(227, 249, 138, 0.5);
+    font-weight: 500;
+  }
+  .state-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid rgba(101, 205, 216, 0.3);
+    border-radius: 20px; padding: 6px 16px;
+    backdrop-filter: blur(12px);
+    font-size: 13px; font-weight: 400;
+  }
+  .state-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 10px var(--teal);
+    animation: pulse-dot 2s ease infinite;
+  }
+  @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* ---- MAIN AREA ---- */
+  .main {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative; z-index: 5;
+    min-height: 0;
+    padding: 0 20px;
+  }
+
+  /* ---- OWL CONTAINER ---- */
+  .owl-container {
+    position: relative;
+    width: 280px; height: 280px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ---- PULSING RING ---- */
+  .owl-ring {
+    position: absolute; inset: -20px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(101, 205, 216, 0.3);
+    animation: ring-breathe 4s ease-in-out infinite;
+  }
+  .owl-ring::after {
+    content: '';
+    position: absolute; inset: -12px;
+    border-radius: 50%;
+    border: 1px solid rgba(133, 51, 252, 0.15);
+    animation: ring-breathe 4s ease-in-out infinite 0.5s;
+  }
+  @keyframes ring-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50%      { transform: scale(1.06); opacity: 0.9; }
+  }
+  .owl-ring.speaking {
+    animation: ring-speak 0.6s ease-in-out infinite;
+    border-color: rgba(227, 249, 138, 0.5);
+  }
+  .owl-ring.speaking::after {
+    animation: ring-speak 0.6s ease-in-out infinite 0.15s;
+    border-color: rgba(227, 249, 138, 0.25);
+  }
+  @keyframes ring-speak {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50%      { transform: scale(1.12); opacity: 1; }
+  }
+  .owl-ring.listening {
+    animation: ring-listen 1.5s ease-in-out infinite;
+    border-color: rgba(133, 51, 252, 0.5);
+  }
+  .owl-ring.listening::after {
+    animation: ring-listen 1.5s ease-in-out infinite 0.3s;
+    border-color: rgba(133, 51, 252, 0.25);
+  }
+  @keyframes ring-listen {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50%      { transform: scale(1.08); opacity: 1; }
+  }
+
+  /* ---- THE OWL (CSS) ---- */
+  .owl {
+    position: relative;
+    font-size: 140px;
+    line-height: 1;
+    animation: owl-breathe 4s ease-in-out infinite;
+    filter: drop-shadow(0 0 40px rgba(133, 51, 252, 0.3))
+            drop-shadow(0 0 80px rgba(101, 205, 216, 0.15));
+    cursor: default;
+    user-select: none;
+    transition: filter 0.4s ease;
+    z-index: 2;
+  }
+  .owl:hover {
+    filter: drop-shadow(0 0 50px rgba(133, 51, 252, 0.5))
+            drop-shadow(0 0 100px rgba(227, 249, 138, 0.2));
+  }
+  @keyframes owl-breathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50%      { transform: scale(1.04) translateY(-4px); }
+  }
+  .owl.speaking {
+    animation: owl-speak 0.3s ease-in-out infinite;
+    filter: drop-shadow(0 0 50px rgba(227, 249, 138, 0.5))
+            drop-shadow(0 0 100px rgba(227, 249, 138, 0.2));
+  }
+  @keyframes owl-speak {
+    0%, 100% { transform: scale(1.02) translateY(-2px); }
+    50%      { transform: scale(1.06) translateY(-6px); }
+  }
+  .owl.thinking {
+    animation: owl-think 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 50px rgba(133, 51, 252, 0.6))
+            drop-shadow(0 0 100px rgba(133, 51, 252, 0.3));
+  }
+  @keyframes owl-think {
+    0%, 100% { transform: scale(1) translateY(0) rotate(0deg); }
+    25%      { transform: scale(1.02) translateY(-3px) rotate(-2deg); }
+    75%      { transform: scale(1.02) translateY(-3px) rotate(2deg); }
+  }
+  .owl.celebrating {
+    animation: owl-celebrate 0.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 60px rgba(255, 215, 0, 0.5))
+            drop-shadow(0 0 120px rgba(227, 249, 138, 0.3));
+  }
+  @keyframes owl-celebrate {
+    0%, 100% { transform: scale(1) translateY(0) rotate(0deg); }
+    25%      { transform: scale(1.08) translateY(-10px) rotate(-5deg); }
+    75%      { transform: scale(1.08) translateY(-10px) rotate(5deg); }
+  }
+
+  /* ---- GLOW BACKDROP ---- */
+  .owl-glow {
+    position: absolute;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(133,51,252,0.2) 0%, transparent 70%);
+    animation: glow-pulse 4s ease-in-out infinite;
+    z-index: 1;
+  }
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50%      { opacity: 1; transform: scale(1.15); }
+  }
+
+  /* ---- SEED PHASE RING ---- */
+  .seed-ring {
+    position: absolute; inset: -50px;
+    z-index: 0;
+  }
+  .seed-phase-dot {
+    position: absolute;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: rgba(13, 13, 42, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 7px; font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    transition: all 0.4s ease;
+    cursor: default;
+  }
+  .seed-phase-dot.active {
+    color: var(--lime);
+    border-color: rgba(227, 249, 138, 0.4);
+    background: rgba(227, 249, 138, 0.08);
+    box-shadow: 0 0 12px rgba(227, 249, 138, 0.2);
+  }
+  .seed-phase-dot:nth-child(1) { top: -8px;  left: 50%; transform: translateX(-50%); }
+  .seed-phase-dot:nth-child(2) { top: 12%;   right: -2px; }
+  .seed-phase-dot:nth-child(3) { top: 50%;   right: -14px; transform: translateY(-50%); }
+  .seed-phase-dot:nth-child(4) { bottom: 12%; right: -2px; }
+  .seed-phase-dot:nth-child(5) { bottom: -8px; left: 50%; transform: translateX(-50%); }
+  .seed-phase-dot:nth-child(6) { bottom: 12%; left: -2px; }
+  .seed-phase-dot:nth-child(7) { top: 50%;   left: -14px; transform: translateY(-50%); }
+  .seed-phase-dot:nth-child(8) { top: 12%;   left: -2px; }
+
+  /* ---- STATS CARD (bottom left) ---- */
+  .stats-card {
+    position: fixed; bottom: 80px; left: 20px; z-index: 20;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    min-width: 220px;
+    backdrop-filter: blur(16px);
+    font-size: 12px;
+  }
+  .stats-card h3 {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 10px; font-weight: 500;
+  }
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 4px 0;
+  }
+  .stat-label { color: var(--text-dim); font-weight: 300; }
+  .stat-val { color: var(--lime); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .xp-bar {
+    width: 100%; height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px; margin: 8px 0;
+    overflow: hidden;
+  }
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--lime));
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+
+  .skill-row {
+    margin: 3px 0;
+  }
+  .skill-header {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: var(--text-dim); font-weight: 300;
+  }
+  .skill-bar {
+    width: 100%; height: 2px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 1px; margin-top: 2px;
+    overflow: hidden;
+  }
+  .skill-fill {
+    height: 100%; border-radius: 1px;
+    transition: width 0.8s ease;
+  }
+
+  /* ---- CHAT AREA ---- */
+  .chat-area {
+    position: relative; z-index: 20;
+    flex-shrink: 0;
+    padding: 0 20px 20px;
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .chat-messages {
+    max-height: 140px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+  }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  .chat-msg {
+    padding: 8px 14px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    animation: msg-in 0.3s ease;
+    max-width: 85%;
+    word-wrap: break-word;
+  }
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .chat-msg.user {
+    background: rgba(133, 51, 252, 0.15);
+    border: 1px solid rgba(133, 51, 252, 0.2);
+    margin-left: auto;
+    color: var(--text);
+  }
+  .chat-msg.owl {
+    background: rgba(101, 205, 216, 0.08);
+    border: 1px solid rgba(101, 205, 216, 0.15);
+    color: var(--text);
+  }
+  .chat-msg.owl .owl-label {
+    font-size: 10px; color: var(--teal); font-weight: 500;
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .chat-msg.system {
+    background: rgba(227, 249, 138, 0.05);
+    border: 1px solid rgba(227, 249, 138, 0.1);
+    color: var(--text-dim);
+    font-size: 11px;
+    text-align: center;
+    max-width: 100%;
+  }
+
+  .chat-input-row {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .chat-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .chat-input::placeholder { color: rgba(255,255,255,0.25); }
+  .chat-input:focus {
+    border-color: rgba(133, 51, 252, 0.4);
+    box-shadow: 0 0 0 3px rgba(133, 51, 252, 0.1);
+  }
+  .chat-send {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--purple), #6b2fd6);
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s, opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .chat-send:hover { transform: scale(1.05); }
+  .chat-send:active { transform: scale(0.95); }
+  .chat-send:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .chat-send svg { width: 20px; height: 20px; }
+
+  /* ---- TYPING INDICATOR ---- */
+  .typing-dots {
+    display: inline-flex; gap: 4px; padding: 4px 0;
+  }
+  .typing-dots span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--teal); opacity: 0.4;
+    animation: typing-bounce 1.2s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing-bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-height: 700px) {
+    .owl-container { width: 200px; height: 200px; }
+    .owl { font-size: 100px; }
+    .owl-glow { width: 140px; height: 140px; }
+    .seed-ring { inset: -40px; }
+    .seed-phase-dot { width: 26px; height: 26px; font-size: 6px; }
+    .stats-card { display: none; }
+    .chat-messages { max-height: 100px; }
+  }
+  @media (max-width: 480px) {
+    .stats-card { display: none; }
+    .owl-container { width: 220px; height: 220px; }
+    .owl { font-size: 110px; }
+  }
 </style>
 </head>
 <body>
-<canvas id="canvas"></canvas>
-<div id="title">WeEvolve Companion</div>
 
-<div id="state-indicator">
-  <span id="state-dot"></span>
-  <span id="state-text">Idle</span>
-</div>
+<!-- Background particles -->
+<div class="bg-particles" id="particles"></div>
 
-<div id="stats">
-  <h2>Evolution</h2>
-  <div class="stat-row"><span class="stat-label">Level</span><span class="stat-val" id="s-level">1</span></div>
-  <div class="xp-bar-outer"><div class="xp-bar-inner" id="s-xp" style="width:0%"></div></div>
-  <div class="stat-row"><span class="stat-label">Learnings</span><span class="stat-val" id="s-learn">0</span></div>
-  <div class="stat-row"><span class="stat-label">Insights</span><span class="stat-val" id="s-insight">0</span></div>
-  <div class="stat-row"><span class="stat-label">Alpha</span><span class="stat-val" id="s-alpha">0</span></div>
-  <div class="stat-row"><span class="stat-label">Streak</span><span class="stat-val" id="s-streak">0d</span></div>
-  <div style="margin-top:10px">
-    <div class="stat-row"><span class="stat-label" style="color:#65cdd8">SEED Phase</span></div>
-    <div class="seed-phase" id="seed-dots"></div>
-  </div>
-  <div style="margin-top:10px">
-    <div class="stat-row"><span class="stat-label" style="color:#65cdd8">Skills</span></div>
-    <div id="skill-bars"></div>
+<!-- Header -->
+<div class="header">
+  <div class="header-title">8OWLS Companion</div>
+  <div class="state-badge">
+    <span class="state-dot" id="state-dot"></span>
+    <span id="state-text">Idle</span>
   </div>
 </div>
 
-<script type="importmap">
-  {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
-</script>
-<script type="module">
-import * as THREE from 'three';
+<!-- Main content area with owl -->
+<div class="main">
+  <div class="owl-container">
+    <!-- SEED phase indicators around the owl -->
+    <div class="seed-ring" id="seed-ring"></div>
+    <!-- Glow backdrop -->
+    <div class="owl-glow"></div>
+    <!-- Pulsing ring -->
+    <div class="owl-ring" id="owl-ring"></div>
+    <!-- The Owl -->
+    <div class="owl" id="owl" role="img" aria-label="Owl companion">&#x1F989;</div>
+  </div>
+</div>
 
-/* --------------------------------------------------------- */
-/* SCENE SETUP                                               */
-/* --------------------------------------------------------- */
-const canvas = document.getElementById('canvas');
-const renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: false});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
+<!-- Stats overlay -->
+<div class="stats-card" id="stats-card">
+  <h3>Evolution</h3>
+  <div class="stat-row">
+    <span class="stat-label">Level</span>
+    <span class="stat-val" id="s-level">1</span>
+  </div>
+  <div class="xp-bar"><div class="xp-fill" id="s-xp" style="width:0%"></div></div>
+  <div class="stat-row">
+    <span class="stat-label">Learnings</span>
+    <span class="stat-val" id="s-learn">0</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">Insights</span>
+    <span class="stat-val" id="s-insight">0</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">Alpha</span>
+    <span class="stat-val" id="s-alpha">0</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">Streak</span>
+    <span class="stat-val" id="s-streak">0d</span>
+  </div>
+  <div id="skill-bars" style="margin-top: 8px;"></div>
+</div>
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0D0D2A);
-scene.fog = new THREE.FogExp2(0x0D0D2A, 0.06);
+<!-- Chat area -->
+<div class="chat-area">
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-input-row">
+    <input
+      type="text"
+      class="chat-input"
+      id="chat-input"
+      placeholder="Ask your owl anything..."
+      autocomplete="off"
+      maxlength="2000"
+    >
+    <button class="chat-send" id="chat-send" title="Send">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+</div>
 
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 0.6, 5);
+<script>
+/* ================================================================
+   8OWLS COMPANION — Runtime
+   ================================================================ */
 
-/* Lights */
-const ambient = new THREE.AmbientLight(0x334466, 0.6);
-scene.add(ambient);
-const key = new THREE.DirectionalLight(0xFFD700, 0.9);
-key.position.set(3, 5, 4);
-scene.add(key);
-const rim = new THREE.PointLight(0x65cdd8, 0.8, 15);
-rim.position.set(-3, 2, -2);
-scene.add(rim);
-const fill = new THREE.PointLight(0x8533fc, 0.4, 12);
-fill.position.set(2, -1, 3);
-scene.add(fill);
+const SEED_PHASES = ['PERCEIVE','CONNECT','LEARN','QUESTION','EXPAND','SHARE','RECEIVE','IMPROVE'];
+const SKILL_COLORS = ['#e3f98a','#65cdd8','#8533fc','#FFD700','#ff6b6b','#6BCB77','#ff9f43','#a29bfe'];
+const STATE_COLORS = {
+  idle: '#65cdd8', listening: '#8533fc', speaking: '#e3f98a',
+  thinking: '#8533fc', celebrating: '#FFD700'
+};
 
-/* --------------------------------------------------------- */
-/* BUILD OWL                                                 */
-/* --------------------------------------------------------- */
-const owl = new THREE.Group();
-
-/* Materials */
-const bodyMat = new THREE.MeshStandardMaterial({color:0xCD853F, roughness:0.55, metalness:0.3});
-const darkMat = new THREE.MeshStandardMaterial({color:0x8B6914, roughness:0.6, metalness:0.2});
-const eyeWhiteMat = new THREE.MeshStandardMaterial({color:0xFFFFF0, roughness:0.2, metalness:0.1});
-const irisMat = new THREE.MeshStandardMaterial({color:0xFFD700, emissive:0xFFD700, emissiveIntensity:0.4, roughness:0.1, metalness:0.5});
-const pupilMat = new THREE.MeshStandardMaterial({color:0x111111, roughness:0.8});
-const beakMat = new THREE.MeshStandardMaterial({color:0xDAA520, roughness:0.4, metalness:0.4});
-const wingMat = new THREE.MeshStandardMaterial({color:0xA0722A, roughness:0.5, metalness:0.25});
-const talonMat = new THREE.MeshStandardMaterial({color:0x8B7355, roughness:0.6, metalness:0.3});
-
-/* Body */
-const body = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), bodyMat);
-body.scale.set(1, 1.15, 0.9);
-owl.add(body);
-
-/* Head */
-const head = new THREE.Mesh(new THREE.SphereGeometry(0.62, 32, 32), bodyMat);
-head.position.set(0, 1.1, 0.05);
-owl.add(head);
-
-/* Ear tufts */
-const earGeo = new THREE.ConeGeometry(0.15, 0.45, 8);
-const earL = new THREE.Mesh(earGeo, darkMat);
-earL.position.set(-0.32, 1.72, 0);
-earL.rotation.z = 0.25;
-owl.add(earL);
-const earR = new THREE.Mesh(earGeo, darkMat);
-earR.position.set(0.32, 1.72, 0);
-earR.rotation.z = -0.25;
-owl.add(earR);
-
-/* Eye sockets (dark rings) */
-const socketGeo = new THREE.SphereGeometry(0.2, 24, 24);
-const socketMat = new THREE.MeshStandardMaterial({color:0x3B2610, roughness:0.8});
-const socketL = new THREE.Mesh(socketGeo, socketMat);
-socketL.position.set(-0.22, 1.18, 0.48);
-socketL.scale.set(1, 1, 0.4);
-owl.add(socketL);
-const socketR = new THREE.Mesh(socketGeo, socketMat);
-socketR.position.set(0.22, 1.18, 0.48);
-socketR.scale.set(1, 1, 0.4);
-owl.add(socketR);
-
-/* Eyes */
-function makeEye(x) {
-  const g = new THREE.Group();
-  const white = new THREE.Mesh(new THREE.SphereGeometry(0.14, 20, 20), eyeWhiteMat);
-  g.add(white);
-  const iris = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 16), irisMat);
-  iris.position.z = 0.07;
-  g.add(iris);
-  const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 12), pupilMat);
-  pupil.position.z = 0.12;
-  g.add(pupil);
-  /* Upper eyelid for blinking */
-  const lidGeo = new THREE.SphereGeometry(0.155, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.5);
-  const lidMat = new THREE.MeshStandardMaterial({color:0xCD853F, roughness:0.55, metalness:0.3});
-  const lid = new THREE.Mesh(lidGeo, lidMat);
-  lid.rotation.x = -Math.PI;
-  lid.position.z = 0.01;
-  lid.visible = false;
-  lid.name = 'lid';
-  g.add(lid);
-  g.position.set(x, 1.18, 0.52);
-  return g;
-}
-const eyeL = makeEye(-0.22);
-const eyeR = makeEye(0.22);
-owl.add(eyeL, eyeR);
-
-/* Beak */
-const beakGeo = new THREE.ConeGeometry(0.08, 0.18, 6);
-const beak = new THREE.Mesh(beakGeo, beakMat);
-beak.position.set(0, 1.0, 0.58);
-beak.rotation.x = Math.PI;
-owl.add(beak);
-
-/* Wings */
-function makeWing(side) {
-  const shape = new THREE.Shape();
-  shape.moveTo(0, 0);
-  shape.quadraticCurveTo(0.6 * side, 0.3, 0.9 * side, -0.1);
-  shape.quadraticCurveTo(0.7 * side, -0.5, 0.1 * side, -0.7);
-  shape.lineTo(0, -0.4);
-  const geo = new THREE.ExtrudeGeometry(shape, {depth: 0.06, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 3});
-  const wing = new THREE.Mesh(geo, wingMat);
-  wing.position.set(side * 0.7, 0.3, -0.1);
-  wing.rotation.y = side * -0.3;
-  return wing;
-}
-const wingL = makeWing(-1);
-const wingR = makeWing(1);
-owl.add(wingL, wingR);
-
-/* Talons */
-for (let i = -1; i <= 1; i += 2) {
-  for (let j = -1; j <= 1; j++) {
-    const talon = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.015, 0.2, 8), talonMat);
-    talon.position.set(i * 0.25 + j * 0.06, -1.0, 0.1 + Math.abs(j) * 0.05);
-    talon.rotation.x = 0.3;
-    owl.add(talon);
-  }
-}
-
-/* Chest feather pattern (v-marks) */
-const chestMat = new THREE.MeshStandardMaterial({color:0xDEB887, roughness:0.7, metalness:0.1});
-for (let row = 0; row < 4; row++) {
-  for (let col = -1; col <= 1; col++) {
-    const m = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.1, 3), chestMat);
-    m.position.set(col * 0.15, -0.1 - row * 0.18, 0.82 - row * 0.06);
-    m.rotation.x = -0.3;
-    owl.add(m);
-  }
-}
-
-owl.position.y = -0.3;
-scene.add(owl);
-
-/* --------------------------------------------------------- */
-/* AUDIO VISUALIZATION RING                                  */
-/* --------------------------------------------------------- */
-const RING_SEGMENTS = 64;
-const ringPositions = new Float32Array(RING_SEGMENTS * 3);
-const ringGeo = new THREE.BufferGeometry();
-ringGeo.setAttribute('position', new THREE.BufferAttribute(ringPositions, 3));
-const ringMat = new THREE.LineBasicMaterial({color: 0x65cdd8, linewidth: 1, transparent: true, opacity: 0.7});
-const ring = new THREE.LineLoop(ringGeo, ringMat);
-ring.position.y = 0.3;
-scene.add(ring);
-
-/* Audio setup */
-let analyser = null;
-let audioData = new Uint8Array(RING_SEGMENTS);
-
-async function initAudio() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-    const ctx = new AudioContext();
-    const src = ctx.createMediaStreamSource(stream);
-    analyser = ctx.createAnalyser();
-    analyser.fftSize = 128;
-    analyser.smoothingTimeConstant = 0.8;
-    src.connect(analyser);
-    audioData = new Uint8Array(analyser.frequencyBinCount);
-  } catch (e) {
-    /* Microphone not available -- ring shows a gentle idle wave */
-  }
-}
-initAudio();
-
-/* --------------------------------------------------------- */
-/* PARTICLE FIELD (ambient sparkles)                         */
-/* --------------------------------------------------------- */
-const PARTICLE_COUNT = 200;
-const particleGeo = new THREE.BufferGeometry();
-const particlePos = new Float32Array(PARTICLE_COUNT * 3);
-const particleSizes = new Float32Array(PARTICLE_COUNT);
-for (let i = 0; i < PARTICLE_COUNT; i++) {
-  particlePos[i*3]   = (Math.random()-0.5)*12;
-  particlePos[i*3+1] = (Math.random()-0.5)*8;
-  particlePos[i*3+2] = (Math.random()-0.5)*8 - 2;
-  particleSizes[i]   = Math.random()*2+0.5;
-}
-particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
-particleGeo.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
-const particleMat = new THREE.PointsMaterial({color:0xe3f98a, size:0.03, transparent:true, opacity:0.35, sizeAttenuation:true});
-const particles = new THREE.Points(particleGeo, particleMat);
-scene.add(particles);
-
-/* --------------------------------------------------------- */
-/* STATE                                                     */
-/* --------------------------------------------------------- */
-let owlState = 'idle';
-let blinkTimer = 0;
-let blinkDuration = 0;
-let isBlinking = false;
-let nextBlinkIn = 2 + Math.random() * 4;
-
-const SEED_NAMES = ['PERCEIVE','CONNECT','LEARN','QUESTION','EXPAND','SHARE','RECEIVE','IMPROVE'];
+let currentState = 'idle';
 let currentSeedPhase = 0;
+let chatHistory = [];
+let isSending = false;
 
-/* --------------------------------------------------------- */
-/* UI UPDATES                                                */
-/* --------------------------------------------------------- */
-const seedDotsEl = document.getElementById('seed-dots');
-SEED_NAMES.forEach((name, i) => {
-  const dot = document.createElement('div');
-  dot.className = 'seed-dot';
-  dot.title = name;
-  if (i === 0) dot.classList.add('active');
-  seedDotsEl.appendChild(dot);
-});
+/* ---- Background particles ---- */
+(function initParticles() {
+  const container = document.getElementById('particles');
+  const count = 30;
+  for (let i = 0; i < count; i++) {
+    const span = document.createElement('span');
+    span.style.left = (Math.random() * 100) + '%';
+    span.style.top = (60 + Math.random() * 50) + '%';
+    span.style.width = (1 + Math.random() * 2) + 'px';
+    span.style.height = span.style.width;
+    span.style.animationDuration = (8 + Math.random() * 16) + 's';
+    span.style.animationDelay = (Math.random() * 10) + 's';
+    container.appendChild(span);
+  }
+})();
 
-const SKILL_COLORS = ['#e3f98a','#65cdd8','#8533fc','#FFD700','#ff6b6b'];
+/* ---- SEED Phase dots around owl ---- */
+(function initSeedRing() {
+  const ring = document.getElementById('seed-ring');
+  SEED_PHASES.forEach((phase, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'seed-phase-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = phase.substring(0, 3);
+    dot.title = phase;
+    ring.appendChild(dot);
+  });
+})();
 
-function updateUI(data) {
+/* ---- State management ---- */
+function setOwlState(state) {
+  if (state === currentState) return;
+  currentState = state;
+
+  const owl = document.getElementById('owl');
+  const ring = document.getElementById('owl-ring');
+  const dot = document.getElementById('state-dot');
+  const text = document.getElementById('state-text');
+
+  owl.className = 'owl' + (state !== 'idle' ? ' ' + state : '');
+  ring.className = 'owl-ring' + (state !== 'idle' ? ' ' + state : '');
+
+  const color = STATE_COLORS[state] || '#65cdd8';
+  dot.style.background = color;
+  dot.style.boxShadow = '0 0 10px ' + color;
+  text.textContent = state.charAt(0).toUpperCase() + state.slice(1);
+}
+
+function setSeedPhase(idx) {
+  if (idx < 0 || idx >= SEED_PHASES.length) return;
+  currentSeedPhase = idx;
+  document.querySelectorAll('.seed-phase-dot').forEach(function(d, i) {
+    d.classList.toggle('active', i === idx);
+  });
+}
+
+/* ---- Stats update ---- */
+function updateStats(data) {
   document.getElementById('s-level').textContent = data.level || 1;
-  const pct = data.xp_to_next ? Math.min(100, ((data.xp || 0) / data.xp_to_next) * 100) : 0;
+  var pct = data.xp_to_next ? Math.min(100, ((data.xp || 0) / data.xp_to_next) * 100) : 0;
   document.getElementById('s-xp').style.width = pct + '%';
   document.getElementById('s-learn').textContent = data.total_learnings || 0;
   document.getElementById('s-insight').textContent = data.total_insights || 0;
   document.getElementById('s-alpha').textContent = data.total_alpha || 0;
   document.getElementById('s-streak').textContent = (data.streak_days || 0) + 'd';
 
-  /* Top 5 skills */
-  const skills = data.skills || {};
-  const sorted = Object.entries(skills).sort((a,b) => b[1]-a[1]).slice(0,5);
-  const container = document.getElementById('skill-bars');
+  var skills = data.skills || {};
+  var sorted = Object.entries(skills).filter(function(e) { return e[1] > 0; })
+    .sort(function(a, b) { return b[1] - a[1]; }).slice(0, 5);
+  var container = document.getElementById('skill-bars');
   container.innerHTML = '';
-  sorted.forEach(([name, val], i) => {
-    const maxVal = Math.max(1, ...Object.values(skills));
-    const pct = (val / maxVal) * 100;
-    const d = document.createElement('div');
-    d.className = 'skill';
-    d.innerHTML = `<div class="skill-name"><span>${name}</span><span>${val.toFixed(1)}</span></div>
-      <div class="skill-bar-outer"><div class="skill-bar-inner" style="width:${pct}%;background:${SKILL_COLORS[i%5]}"></div></div>`;
-    container.appendChild(d);
+  var maxVal = sorted.length > 0 ? Math.max(1, sorted[0][1]) : 1;
+  sorted.forEach(function(entry, i) {
+    var name = entry[0], val = entry[1];
+    var pct = (val / maxVal) * 100;
+    var div = document.createElement('div');
+    div.className = 'skill-row';
+    div.innerHTML = '<div class="skill-header"><span>' + name + '</span><span>' + val.toFixed(1) + '</span></div>'
+      + '<div class="skill-bar"><div class="skill-fill" style="width:' + pct + '%;background:' + SKILL_COLORS[i % SKILL_COLORS.length] + '"></div></div>';
+    container.appendChild(div);
   });
 }
 
-function updateStateUI(state) {
-  owlState = state;
-  const dot = document.getElementById('state-dot');
-  const text = document.getElementById('state-text');
-  const colors = {idle:'#65cdd8', listening:'#e3f98a', speaking:'#FFD700', thinking:'#8533fc', celebrating:'#ff6b6b'};
-  dot.style.background = colors[state] || '#65cdd8';
-  dot.style.boxShadow = `0 0 10px ${colors[state] || '#65cdd8'}`;
-  text.textContent = state.charAt(0).toUpperCase() + state.slice(1);
-}
-
-/* Fetch stats + state periodically */
+/* ---- Polling ---- */
 async function pollServer() {
   try {
-    const [statsRes, stateRes] = await Promise.all([
-      fetch('/api/stats').then(r => r.ok ? r.json() : null),
-      fetch('/api/state').then(r => r.ok ? r.json() : null),
+    var responses = await Promise.all([
+      fetch('/api/stats').then(function(r) { return r.ok ? r.json() : null; }),
+      fetch('/api/state').then(function(r) { return r.ok ? r.json() : null; })
     ]);
-    if (statsRes) updateUI(statsRes);
-    if (stateRes) {
-      updateStateUI(stateRes.state || 'idle');
-      const pi = SEED_NAMES.indexOf(stateRes.seed_phase);
-      if (pi >= 0) {
-        currentSeedPhase = pi;
-        seedDotsEl.querySelectorAll('.seed-dot').forEach((d, i) => d.classList.toggle('active', i === pi));
-      }
+    if (responses[0]) updateStats(responses[0]);
+    if (responses[1]) {
+      if (!isSending) setOwlState(responses[1].state || 'idle');
+      var pi = SEED_PHASES.indexOf(responses[1].seed_phase);
+      if (pi >= 0) setSeedPhase(pi);
     }
-  } catch (e) { /* server unreachable -- ignore */ }
+  } catch (e) { /* ignore */ }
 }
 pollServer();
 setInterval(pollServer, 3000);
 
-/* --------------------------------------------------------- */
-/* ANIMATION LOOP                                            */
-/* --------------------------------------------------------- */
-const clock = new THREE.Clock();
+/* ---- Chat system ---- */
+var messagesEl = document.getElementById('chat-messages');
+var inputEl = document.getElementById('chat-input');
+var sendBtn = document.getElementById('chat-send');
 
-function animate() {
-  requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
-  const dt = clock.getDelta();
-
-  /* ---- Breathing (always) ---- */
-  const breathe = Math.sin(t * 1.2) * 0.015;
-  owl.position.y = -0.3 + breathe;
-  body.scale.y = 1.15 + Math.sin(t * 1.2) * 0.02;
-  body.scale.x = 1.0 - Math.sin(t * 1.2) * 0.008;
-
-  /* ---- Blinking ---- */
-  nextBlinkIn -= (1/60);
-  if (nextBlinkIn <= 0 && !isBlinking) {
-    isBlinking = true;
-    blinkDuration = 0;
-    eyeL.children.find(c=>c.name==='lid').visible = true;
-    eyeR.children.find(c=>c.name==='lid').visible = true;
-  }
-  if (isBlinking) {
-    blinkDuration += (1/60);
-    if (blinkDuration > 0.15) {
-      isBlinking = false;
-      nextBlinkIn = 2 + Math.random() * 5;
-      eyeL.children.find(c=>c.name==='lid').visible = false;
-      eyeR.children.find(c=>c.name==='lid').visible = false;
-    }
-  }
-
-  /* ---- State-dependent animations ---- */
-  if (owlState === 'listening') {
-    /* Gentle head tilt */
-    head.rotation.z = Math.sin(t * 0.8) * 0.12;
-    head.rotation.x = Math.sin(t * 0.5) * 0.05;
-    earL.rotation.z = 0.25 + Math.sin(t * 2) * 0.08;
-    earR.rotation.z = -0.25 - Math.sin(t * 2) * 0.08;
+function addMessage(type, text) {
+  var div = document.createElement('div');
+  div.className = 'chat-msg ' + type;
+  if (type === 'owl') {
+    div.innerHTML = '<div class="owl-label">SOWL</div>' + escapeHtml(text);
+  } else if (type === 'system') {
+    div.textContent = text;
   } else {
-    head.rotation.z *= 0.95;
-    head.rotation.x *= 0.95;
-    earL.rotation.z += (0.25 - earL.rotation.z) * 0.05;
-    earR.rotation.z += (-0.25 - earR.rotation.z) * 0.05;
+    div.textContent = text;
   }
-
-  if (owlState === 'speaking') {
-    /* Eye glow pulse */
-    irisMat.emissiveIntensity = 0.4 + Math.sin(t * 6) * 0.35;
-    /* Beak open/close */
-    beak.scale.y = 1.0 + Math.sin(t * 8) * 0.3;
-    beak.position.y = 1.0 - Math.sin(t * 8) * 0.015;
-  } else {
-    irisMat.emissiveIntensity += (0.4 - irisMat.emissiveIntensity) * 0.05;
-    beak.scale.y += (1.0 - beak.scale.y) * 0.1;
-  }
-
-  if (owlState === 'thinking') {
-    /* Slow rotation and upward gaze */
-    owl.rotation.y = Math.sin(t * 0.3) * 0.15;
-    head.rotation.x = -0.1 + Math.sin(t * 0.7) * 0.05;
-    irisMat.emissiveIntensity = 0.6 + Math.sin(t * 2) * 0.2;
-  } else if (owlState !== 'listening') {
-    owl.rotation.y *= 0.97;
-  }
-
-  if (owlState === 'celebrating') {
-    /* Wing flap */
-    wingL.rotation.z = Math.sin(t * 8) * 0.4;
-    wingR.rotation.z = -Math.sin(t * 8) * 0.4;
-    wingL.position.y = 0.3 + Math.abs(Math.sin(t * 8)) * 0.15;
-    wingR.position.y = 0.3 + Math.abs(Math.sin(t * 8)) * 0.15;
-    /* Bounce */
-    owl.position.y = -0.3 + Math.abs(Math.sin(t * 4)) * 0.15;
-  } else {
-    wingL.rotation.z *= 0.93;
-    wingR.rotation.z *= 0.93;
-    wingL.position.y += (0.3 - wingL.position.y) * 0.05;
-    wingR.position.y += (0.3 - wingR.position.y) * 0.05;
-  }
-
-  /* Idle subtle sway */
-  if (owlState === 'idle') {
-    owl.rotation.y = Math.sin(t * 0.2) * 0.04;
-    head.rotation.z = Math.sin(t * 0.4) * 0.02;
-  }
-
-  /* ---- Audio ring ---- */
-  if (analyser) {
-    analyser.getByteFrequencyData(audioData);
-  }
-  const baseRadius = 2.0;
-  const posArr = ring.geometry.attributes.position.array;
-  for (let i = 0; i < RING_SEGMENTS; i++) {
-    const angle = (i / RING_SEGMENTS) * Math.PI * 2;
-    const audioIdx = Math.floor((i / RING_SEGMENTS) * audioData.length);
-    const audioVal = (audioData[audioIdx] || 0) / 255;
-    const idleWave = Math.sin(t * 2 + angle * 3) * 0.03 + Math.sin(t * 0.7 + angle * 7) * 0.02;
-    const r = baseRadius + audioVal * 0.5 + idleWave;
-    posArr[i*3]   = Math.cos(angle) * r;
-    posArr[i*3+1] = Math.sin(angle) * r;
-    posArr[i*3+2] = 0;
-  }
-  ring.geometry.attributes.position.needsUpdate = true;
-
-  /* Ring color intensity from audio */
-  const avg = audioData.reduce((a,b) => a+b, 0) / audioData.length / 255;
-  ringMat.opacity = 0.3 + avg * 0.6;
-  const hue = 0.5 + avg * 0.1;
-  ringMat.color.setHSL(hue, 0.7, 0.5 + avg * 0.3);
-
-  /* ---- Particles drift ---- */
-  const pp = particles.geometry.attributes.position.array;
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    pp[i*3+1] += 0.002;
-    if (pp[i*3+1] > 4) pp[i*3+1] = -4;
-  }
-  particles.geometry.attributes.position.needsUpdate = true;
-  particleMat.opacity = 0.2 + Math.sin(t * 0.5) * 0.1;
-
-  /* ---- Camera gentle sway ---- */
-  camera.position.x = Math.sin(t * 0.15) * 0.2;
-  camera.position.y = 0.6 + Math.sin(t * 0.1) * 0.1;
-  camera.lookAt(0, 0.4, 0);
-
-  renderer.render(scene, camera);
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
 }
-animate();
 
-/* Resize */
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+function addTypingIndicator() {
+  var div = document.createElement('div');
+  div.className = 'chat-msg owl';
+  div.id = 'typing-indicator';
+  div.innerHTML = '<div class="owl-label">SOWL</div><div class="typing-dots"><span></span><span></span><span></span></div>';
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
+}
+
+function removeTypingIndicator() {
+  var el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+function escapeHtml(text) {
+  var div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+async function sendMessage() {
+  var text = inputEl.value.trim();
+  if (!text || isSending) return;
+
+  isSending = true;
+  sendBtn.disabled = true;
+  inputEl.value = '';
+
+  addMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+
+  setOwlState('thinking');
+  addTypingIndicator();
+
+  try {
+    var response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        history: chatHistory.slice(-10)
+      })
+    });
+
+    removeTypingIndicator();
+
+    if (response.ok) {
+      var data = await response.json();
+      var reply = data.reply || 'I hear you. Let me think on that.';
+      setOwlState('speaking');
+      addMessage('owl', reply);
+      chatHistory.push({ role: 'assistant', content: reply });
+
+      /* Return to idle after a moment */
+      setTimeout(function() { setOwlState('idle'); }, 2000);
+    } else {
+      var errData = await response.json().catch(function() { return {}; });
+      if (errData.error && errData.error.indexOf('API key') >= 0) {
+        addMessage('system', 'Set ANTHROPIC_API_KEY to enable chat. The owl can still keep you company.');
+      } else {
+        addMessage('system', 'Could not reach the owl. Try again.');
+      }
+      setOwlState('idle');
+    }
+  } catch (e) {
+    removeTypingIndicator();
+    addMessage('system', 'Connection lost. The owl is still here.');
+    setOwlState('idle');
+  } finally {
+    isSending = false;
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+}
+
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
 });
+
+/* ---- Initial greeting ---- */
+addMessage('owl', 'Hey. I am here. Ask me anything, or just sit with me.');
+
+/* ---- Focus input on load ---- */
+setTimeout(function() { inputEl.focus(); }, 500);
+
+/* ---- Audio visualization (optional, enhances ring) ---- */
+(async function initAudio() {
+  try {
+    var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    var ctx = new AudioContext();
+    var src = ctx.createMediaStreamSource(stream);
+    var analyser = ctx.createAnalyser();
+    analyser.fftSize = 64;
+    analyser.smoothingTimeConstant = 0.85;
+    src.connect(analyser);
+    var data = new Uint8Array(analyser.frequencyBinCount);
+
+    var ring = document.getElementById('owl-ring');
+    function updateAudio() {
+      analyser.getByteFrequencyData(data);
+      var avg = 0;
+      for (var i = 0; i < data.length; i++) avg += data[i];
+      avg = avg / data.length / 255;
+
+      /* Scale ring border based on audio level */
+      if (avg > 0.05) {
+        var scale = 1 + avg * 0.08;
+        ring.style.transform = 'scale(' + scale + ')';
+        ring.style.borderColor = 'rgba(227, 249, 138, ' + (0.3 + avg * 0.5) + ')';
+      } else {
+        ring.style.transform = '';
+        ring.style.borderColor = '';
+      }
+      requestAnimationFrame(updateAudio);
+    }
+    updateAudio();
+  } catch (e) {
+    /* No microphone -- that is fine, ring still animates via CSS */
+  }
+})();
+
 </script>
 </body>
 </html>
