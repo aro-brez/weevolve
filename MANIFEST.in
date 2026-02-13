@@ -1,0 +1,20 @@
+include README.md
+include SKILL.md
+include pyproject.toml
+
+# Data files (relative to package root, which IS the weevolve dir)
+recursive-include data *.db
+recursive-include companion *.html
+recursive-include site *.html *.json *.js
+recursive-include skills *.md *.sh
+recursive-include hooks *.py
+
+# Exclude build artifacts
+global-exclude __pycache__
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.egg-info
+global-exclude .venv
+global-exclude .pytest_cache
+global-exclude *.db-journal
+exclude weevolve.db

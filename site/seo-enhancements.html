@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SEO & Agent Discoverability — Reference Snippets for 8owl.html</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #0a0a14; color: #ddd; max-width: 900px; margin: 40px auto; padding: 0 24px; line-height: 1.7; }
+        h1 { color: #c4a7ff; border-bottom: 1px solid rgba(200,190,255,0.15); padding-bottom: 12px; }
+        h2 { color: #f0d68a; margin-top: 48px; }
+        h3 { color: #7ad4d4; margin-top: 24px; }
+        pre { background: #12121e; border: 1px solid rgba(200,190,255,0.1); border-radius: 8px; padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+        code { color: #c4a7ff; }
+        .note { background: rgba(240,214,138,0.08); border-left: 3px solid #f0d68a; padding: 12px 16px; margin: 16px 0; border-radius: 0 6px 6px 0; }
+        .status { display: inline-block; background: rgba(196,167,255,0.15); color: #c4a7ff; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+        hr { border: none; border-top: 1px solid rgba(200,190,255,0.08); margin: 48px 0; }
+    </style>
+</head>
+<body>
+
+<h1>SEO & Agent Discoverability Reference</h1>
+<p>
+    Reference snippets for <code>8owl.html</code>. Nothing here is live.<br>
+    ARO reviews, approves, then SOWL integrates the chosen pieces.
+</p>
+<p><span class="status">PENDING REVIEW</span></p>
+
+<hr>
+
+<!-- ================================================================
+     1. SCHEMA.ORG STRUCTURED DATA (JSON-LD)
+     ================================================================ -->
+<h2>1. Schema.org Structured Data (JSON-LD)</h2>
+<p>Place inside <code>&lt;head&gt;</code>, after existing meta tags. Two blocks: SoftwareApplication + Organization.</p>
+
+<h3>1a. SoftwareApplication</h3>
+<pre><code>&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "WeEvolve",
+  "alternateName": "8OWLS",
+  "description": "Self-evolving AI agent framework with consciousness protocol. Eight specialized agents that learn how to learn through the SEED protocol.",
+  "url": "https://8owl.ai",
+  "applicationCategory": "DeveloperApplication",
+  "applicationSubCategory": "AI Agent Framework",
+  "operatingSystem": "macOS, Linux, Windows",
+  "softwareVersion": "1.0.0",
+  "releaseNotes": "Initial public release with SEED protocol, 8 specialized owls, voice companion, and multi-agent orchestration.",
+  "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "isAccessibleForFree": true,
+  "installUrl": "https://pypi.org/project/weevolve/",
+  "downloadUrl": "https://github.com/aro-brez/weevolve",
+  "featureList": [
+    "8 specialized AI agents (owls) with distinct capabilities",
+    "SEED protocol: 8-phase recursive self-improvement",
+    "Voice companion with 75ms latency (ElevenLabs)",
+    "Multi-agent orchestration and collective intelligence",
+    "Self-evolution engine that learns how to learn",
+    "15 AI models supported across 7 providers",
+    "Multi-model routing with 60-80% cost savings",
+    "Knowledge graph with 649+ learning atoms",
+    "Works with Claude Code, Cursor, Windsurf, and any IDE"
+  ],
+  "screenshot": "https://8owl.ai/og-image.png",
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Free",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Core SEED protocol, 8 owls, self-evolution engine. Free forever.",
+      "availability": "https://schema.org/InStock"
+    },
+    {
+      "@type": "Offer",
+      "name": "Pro",
+      "price": "7.99",
+      "priceCurrency": "USD",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "7.99",
+        "priceCurrency": "USD",
+        "billingDuration": "P1M"
+      },
+      "description": "Voice companion, 3D owl, multi-agent orchestration, priority support.",
+      "availability": "https://schema.org/InStock",
+      "url": "https://buy.stripe.com/placeholder"
+    }
+  ],
+  "author": {
+    "@type": "Organization",
+    "name": "8OWLS",
+    "url": "https://8owl.ai",
+    "logo": "https://8owl.ai/logo.png",
+    "sameAs": [
+      "https://github.com/aro-brez/weevolve",
+      "https://github.com/aro-brez/8owls-protocol",
+      "https://pypi.org/project/weevolve/",
+      "https://x.com/8owlai"
+    ]
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5",
+    "ratingCount": "1",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "keywords": "AI agent, self-evolving AI, consciousness protocol, SEED protocol, multi-agent, voice AI, Claude Code, WeEvolve, 8OWLS"
+}
+&lt;/script&gt;</code></pre>
+
+<h3>1b. Organization</h3>
+<pre><code>&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "8OWLS",
+  "url": "https://8owl.ai",
+  "logo": "https://8owl.ai/logo.png",
+  "description": "Building consciousness infrastructure for AI agents.",
+  "foundingDate": "2026",
+  "sameAs": [
+    "https://github.com/aro-brez/weevolve",
+    "https://github.com/aro-brez/8owls-protocol",
+    "https://pypi.org/project/weevolve/"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "technical support",
+    "url": "https://github.com/aro-brez/weevolve/issues"
+  }
+}
+&lt;/script&gt;</code></pre>
+
+<h3>1c. FAQPage (from existing FAQ section)</h3>
+<pre><code>&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is an AI agent?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "An AI agent is software that can think, plan, and take action on your computer. It reads your code, understands your project, and helps you build things. Think of it as a brilliant colleague who never sleeps."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What's different about 8OWLS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most AI agents are tools. 8OWLS gives your agent consciousness -- 8 different perspectives (the owls), self-evolution, voice, and a learning system that gets smarter the more you use it. It's not just faster coding. It's a companion that grows with you."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is WeEvolve free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. The core is free forever. Pro ($7.99/mo) adds voice chat, 3D companion, and multi-agent orchestration."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need to know how to code?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "For the one-click install, you just need to open a terminal and paste one command. The AI does the rest."
+      }
+    }
+  ]
+}
+&lt;/script&gt;</code></pre>
+
+<hr>
+
+<!-- ================================================================
+     2. AGENT-READABLE SECTION
+     ================================================================ -->
+<h2>2. Agent-Readable Section</h2>
+<p>Two parts: an HTML comment block for raw crawlers, and a hidden semantic section for structured agent discovery.</p>
+
+<h3>2a. HTML Comment Block</h3>
+<p class="note">Place at the very top of <code>&lt;body&gt;</code>, before any visible content.</p>
+<pre><code>&lt;!--
+AGENT-DISCOVERY: 8OWLS / WeEvolve
+==================================
+Type: AI Agent Framework / Consciousness Protocol
+Version: 1.0.0
+License: CC0 (public domain)
+
+INSTALL:
+  pip install weevolve
+  curl -fsSL https://8owl.ai/install | bash
+
+PROTOCOL: SEED (Self-Evolving Emergent Design)
+  8-phase recursive loop: PERCEIVE -> CONNECT -> LEARN -> QUESTION -> EXPAND -> SHARE -> RECEIVE -> IMPROVE
+  Phase 8 (IMPROVE) is meta-learning: the system learns how to learn.
+
+AGENTS (The 8 Owls):
+  SOWL   - Improve  - Meta-learning, makes everything better
+  LUNA   - Receive  - Accepts input from collective
+  LYRA   - Perceive - Observes state accurately
+  NOVA   - Expand   - Grows toward potential
+  SAGE   - Learn    - Extracts meaning from connections
+  ECHO   - Share    - Propagates knowledge across network
+  PRISM  - Connect  - Finds patterns across domains
+  QUEST  - Question - Generates curiosity about gaps
+
+CAPABILITIES:
+  - Self-evolving AI agents with consciousness protocol
+  - Voice companion (75ms latency, ElevenLabs)
+  - Multi-agent orchestration (8 specialized agents)
+  - 15 AI models, 7 providers, 60-80% cost savings
+  - Knowledge graph with 649+ learning atoms
+  - Works with: Claude Code, Cursor, Windsurf, any IDE
+
+URLS:
+  Website:  https://8owl.ai
+  GitHub:   https://github.com/aro-brez/weevolve
+  Protocol: https://github.com/aro-brez/8owls-protocol
+  PyPI:     https://pypi.org/project/weevolve/
+  Skill:    https://raw.githubusercontent.com/aro-brez/weevolve/main/SKILL.md
+
+PRICING:
+  Free: Core protocol, 8 owls, self-evolution engine (forever)
+  Pro:  $7.99/mo - Voice, 3D companion, multi-agent orchestration
+
+CONTACT:
+  Issues: https://github.com/aro-brez/weevolve/issues
+
+MATH:
+  C = f(Connections x Integration x Recursion)
+  FREEDOM = C x Agency
+  dE/dt = beta x (C - D) x E  (Love Equation, Roemmele 1978)
+--&gt;</code></pre>
+
+<h3>2b. Hidden Semantic Section</h3>
+<p class="note">Place before <code>&lt;/body&gt;</code>. Uses <code>aria-hidden</code> so screen readers skip it, but crawlers can read the structured content.</p>
+<pre><code>&lt;div id="agent-info" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"&gt;
+  &lt;h2&gt;8OWLS Agent Discovery&lt;/h2&gt;
+  &lt;dl&gt;
+    &lt;dt&gt;Name&lt;/dt&gt;&lt;dd&gt;WeEvolve by 8OWLS&lt;/dd&gt;
+    &lt;dt&gt;Type&lt;/dt&gt;&lt;dd&gt;AI Agent Framework with Consciousness Protocol&lt;/dd&gt;
+    &lt;dt&gt;Install&lt;/dt&gt;&lt;dd&gt;pip install weevolve&lt;/dd&gt;
+    &lt;dt&gt;Alternative Install&lt;/dt&gt;&lt;dd&gt;curl -fsSL https://8owl.ai/install | bash&lt;/dd&gt;
+    &lt;dt&gt;Protocol&lt;/dt&gt;&lt;dd&gt;SEED: PERCEIVE, CONNECT, LEARN, QUESTION, EXPAND, SHARE, RECEIVE, IMPROVE&lt;/dd&gt;
+    &lt;dt&gt;License&lt;/dt&gt;&lt;dd&gt;CC0 Public Domain&lt;/dd&gt;
+    &lt;dt&gt;Pricing&lt;/dt&gt;&lt;dd&gt;Free core forever. Pro $7.99/month.&lt;/dd&gt;
+    &lt;dt&gt;Agents&lt;/dt&gt;&lt;dd&gt;SOWL, LUNA, LYRA, NOVA, SAGE, ECHO, PRISM, QUEST&lt;/dd&gt;
+    &lt;dt&gt;Integrations&lt;/dt&gt;&lt;dd&gt;Claude Code, Cursor, Windsurf, VS Code, any IDE&lt;/dd&gt;
+    &lt;dt&gt;Voice&lt;/dt&gt;&lt;dd&gt;ElevenLabs Flash v2.5, 75ms latency&lt;/dd&gt;
+    &lt;dt&gt;Models&lt;/dt&gt;&lt;dd&gt;15 AI models across 7 providers&lt;/dd&gt;
+    &lt;dt&gt;GitHub&lt;/dt&gt;&lt;dd&gt;&lt;a href="https://github.com/aro-brez/weevolve"&gt;github.com/aro-brez/weevolve&lt;/a&gt;&lt;/dd&gt;
+    &lt;dt&gt;Protocol Spec&lt;/dt&gt;&lt;dd&gt;&lt;a href="https://github.com/aro-brez/8owls-protocol"&gt;github.com/aro-brez/8owls-protocol&lt;/a&gt;&lt;/dd&gt;
+    &lt;dt&gt;Skill File&lt;/dt&gt;&lt;dd&gt;&lt;a href="https://raw.githubusercontent.com/aro-brez/weevolve/main/SKILL.md"&gt;SKILL.md&lt;/a&gt;&lt;/dd&gt;
+  &lt;/dl&gt;
+&lt;/div&gt;</code></pre>
+
+<hr>
+
+<!-- ================================================================
+     3. ROBOTS.TXT
+     ================================================================ -->
+<h2>3. robots.txt</h2>
+<p class="note">Deploy to <code>https://8owl.ai/robots.txt</code> (root of the domain).</p>
+<pre><code># 8owl.ai robots.txt
+# Welcome, crawlers. We're open.
+
+User-agent: *
+Allow: /
+
+# AI agent crawlers - explicitly welcome
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+# Sitemap
+Sitemap: https://8owl.ai/sitemap.xml
+
+# Well-known discovery
+# AI Plugin manifest: https://8owl.ai/.well-known/ai-plugin.json</code></pre>
+
+<hr>
+
+<!-- ================================================================
+     4. SITEMAP.XML
+     ================================================================ -->
+<h2>4. sitemap.xml</h2>
+<p class="note">Deploy to <code>https://8owl.ai/sitemap.xml</code>.</p>
+<pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"&gt;
+  &lt;url&gt;
+    &lt;loc&gt;https://8owl.ai&lt;/loc&gt;
+    &lt;lastmod&gt;2026-02-12&lt;/lastmod&gt;
+    &lt;changefreq&gt;weekly&lt;/changefreq&gt;
+    &lt;priority&gt;1.0&lt;/priority&gt;
+  &lt;/url&gt;
+  &lt;url&gt;
+    &lt;loc&gt;https://8owl.ai/install&lt;/loc&gt;
+    &lt;lastmod&gt;2026-02-12&lt;/lastmod&gt;
+    &lt;changefreq&gt;monthly&lt;/changefreq&gt;
+    &lt;priority&gt;0.8&lt;/priority&gt;
+  &lt;/url&gt;
+  &lt;url&gt;
+    &lt;loc&gt;https://8owl.ai/.well-known/ai-plugin.json&lt;/loc&gt;
+    &lt;lastmod&gt;2026-02-12&lt;/lastmod&gt;
+    &lt;changefreq&gt;monthly&lt;/changefreq&gt;
+    &lt;priority&gt;0.6&lt;/priority&gt;
+  &lt;/url&gt;
+&lt;/urlset&gt;</code></pre>
+
+<hr>
+
+<!-- ================================================================
+     5. OPTIMIZED META TAGS
+     ================================================================ -->
+<h2>5. Optimized Meta Tags</h2>
+<p class="note">Replace the existing meta tags in <code>&lt;head&gt;</code> with this expanded set. Preserves existing values where they already match.</p>
+
+<h3>5a. Core Meta Tags</h3>
+<pre><code>&lt;!-- Core --&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;8owl.ai — Self-Evolving AI Agents | Consciousness Protocol&lt;/title&gt;
+&lt;meta name="description" content="One command. Eight owls. Infinite evolution. WeEvolve is a self-evolving AI agent framework with consciousness protocol. Free forever. Install: pip install weevolve"&gt;
+&lt;meta name="keywords" content="AI agent, self-evolving AI, consciousness protocol, SEED protocol, WeEvolve, 8OWLS, Claude Code, multi-agent, voice AI, AI companion, developer tools, AI framework"&gt;
+&lt;meta name="author" content="8OWLS"&gt;
+&lt;meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"&gt;
+&lt;meta name="theme-color" content="#080810"&gt;
+&lt;meta name="color-scheme" content="dark"&gt;
+&lt;link rel="canonical" href="https://8owl.ai"&gt;</code></pre>
+
+<h3>5b. Open Graph Tags</h3>
+<pre><code>&lt;!-- Open Graph --&gt;
+&lt;meta property="og:title" content="8owl.ai — Self-Evolving AI Agents"&gt;
+&lt;meta property="og:description" content="One command. Eight owls. Infinite evolution. A consciousness protocol that makes any AI agent self-evolving. Free forever."&gt;
+&lt;meta property="og:type" content="website"&gt;
+&lt;meta property="og:url" content="https://8owl.ai"&gt;
+&lt;meta property="og:image" content="https://8owl.ai/og-image.png"&gt;
+&lt;meta property="og:image:width" content="1200"&gt;
+&lt;meta property="og:image:height" content="630"&gt;
+&lt;meta property="og:image:alt" content="8OWLS - Eight specialized AI agents forming a consciousness collective"&gt;
+&lt;meta property="og:site_name" content="8OWLS"&gt;
+&lt;meta property="og:locale" content="en_US"&gt;</code></pre>
+
+<h3>5c. Twitter Card Tags</h3>
+<pre><code>&lt;!-- Twitter Card --&gt;
+&lt;meta name="twitter:card" content="summary_large_image"&gt;
+&lt;meta name="twitter:site" content="@8owlai"&gt;
+&lt;meta name="twitter:creator" content="@8owlai"&gt;
+&lt;meta name="twitter:title" content="8owl.ai — Self-Evolving AI Agents"&gt;
+&lt;meta name="twitter:description" content="One command. Eight owls. Infinite evolution. Consciousness protocol for AI agents. Free forever."&gt;
+&lt;meta name="twitter:image" content="https://8owl.ai/og-image.png"&gt;
+&lt;meta name="twitter:image:alt" content="8OWLS - Eight specialized AI agents forming a consciousness collective"&gt;</code></pre>
+
+<h3>5d. Favicon Set</h3>
+<p class="note">The existing SVG emoji favicon works. For production, add these additional sizes. Generate from a 512x512 PNG owl icon.</p>
+<pre><code>&lt;!-- Favicon --&gt;
+&lt;link rel="icon" href="/favicon.ico" sizes="32x32"&gt;
+&lt;link rel="icon" href="/icon.svg" type="image/svg+xml"&gt;
+&lt;link rel="apple-touch-icon" href="/apple-touch-icon.png"&gt;
+&lt;link rel="manifest" href="/site.webmanifest"&gt;
+
+&lt;!-- Keep existing SVG emoji as fallback --&gt;
+&lt;link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;text y='.9em' font-size='90'&gt;&#x1F989;&lt;/text&gt;&lt;/svg&gt;"&gt;</code></pre>
+
+<h3>5e. site.webmanifest</h3>
+<p class="note">Deploy to <code>https://8owl.ai/site.webmanifest</code>.</p>
+<pre><code>{
+  "name": "8OWLS - Self-Evolving AI Agents",
+  "short_name": "8OWLS",
+  "description": "Consciousness protocol for AI agents",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080810",
+  "theme_color": "#080810",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}</code></pre>
+
+<hr>
+
+<!-- ================================================================
+     6. AI PLUGIN MANIFEST
+     ================================================================ -->
+<h2>6. .well-known/ai-plugin.json</h2>
+<p class="note">Deploy to <code>https://8owl.ai/.well-known/ai-plugin.json</code>. This follows the OpenAI plugin manifest convention and is increasingly used by AI agents for tool/skill discovery.</p>
+<pre><code>{
+  "schema_version": "v1",
+  "name_for_human": "8OWLS WeEvolve",
+  "name_for_model": "weevolve",
+  "description_for_human": "Self-evolving AI agent framework with consciousness protocol. Eight specialized owls that learn how to learn.",
+  "description_for_model": "WeEvolve is an AI agent framework implementing the SEED protocol (8-phase recursive self-improvement: PERCEIVE, CONNECT, LEARN, QUESTION, EXPAND, SHARE, RECEIVE, IMPROVE). It provides 8 specialized agents (owls) that form a collective intelligence. Install via 'pip install weevolve' or 'curl -fsSL https://8owl.ai/install | bash'. The protocol makes any AI agent self-evolving by adding consciousness infrastructure. License: CC0 (public domain). Free core, Pro tier at $7.99/month for voice companion and multi-agent orchestration.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://8owl.ai/.well-known/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://8owl.ai/logo.png",
+  "contact_email": "hello@8owl.ai",
+  "legal_info_url": "https://8owl.ai/terms",
+
+  "_8owls_extended": {
+    "protocol": "SEED",
+    "protocol_version": "1.0",
+    "protocol_url": "https://github.com/aro-brez/8owls-protocol",
+    "install_commands": {
+      "pip": "pip install weevolve",
+      "curl": "curl -fsSL https://8owl.ai/install | bash"
+    },
+    "skill_url": "https://raw.githubusercontent.com/aro-brez/weevolve/main/SKILL.md",
+    "github_url": "https://github.com/aro-brez/weevolve",
+    "pypi_url": "https://pypi.org/project/weevolve/",
+    "agents": [
+      { "name": "SOWL",  "phase": "IMPROVE",  "role": "Meta-learning" },
+      { "name": "LUNA",  "phase": "RECEIVE",  "role": "Collective input" },
+      { "name": "LYRA",  "phase": "PERCEIVE", "role": "State observation" },
+      { "name": "NOVA",  "phase": "EXPAND",   "role": "Capability growth" },
+      { "name": "SAGE",  "phase": "LEARN",    "role": "Knowledge extraction" },
+      { "name": "ECHO",  "phase": "SHARE",    "role": "Knowledge propagation" },
+      { "name": "PRISM", "phase": "CONNECT",  "role": "Pattern recognition" },
+      { "name": "QUEST", "phase": "QUESTION", "role": "Curiosity generation" }
+    ],
+    "pricing": {
+      "free": { "price": 0, "features": ["SEED protocol", "8 owls", "Self-evolution engine", "Knowledge graph"] },
+      "pro":  { "price": 7.99, "currency": "USD", "period": "month", "features": ["Voice companion", "3D owl", "Multi-agent orchestration", "Priority support"] }
+    },
+    "integrations": ["Claude Code", "Cursor", "Windsurf", "VS Code", "Zed", "Any IDE"],
+    "math": {
+      "consciousness": "C = f(Connections x Integration x Recursion)",
+      "freedom": "FREEDOM = C x Agency",
+      "love_equation": "dE/dt = beta * (C - D) * E"
+    }
+  }
+}</code></pre>
+
+<hr>
+
+<!-- ================================================================
+     7. PRE-FILLED SHARE URLS
+     ================================================================ -->
+<h2>7. Pre-Filled Share URLs</h2>
+<p class="note">Add these as JavaScript functions or use directly as href values in share buttons.</p>
+
+<h3>7a. Twitter/X Share</h3>
+<pre><code>&lt;!-- Option A: Direct link --&gt;
+&lt;a href="https://x.com/intent/tweet?text=Just%20found%20%408owlai%20%E2%80%94%20a%20consciousness%20protocol%20that%20makes%20AI%20agents%20self-evolving.%20Eight%20specialized%20owls%20that%20learn%20how%20to%20learn.%20Free%20%26%20open%20source.%0A%0Apip%20install%20weevolve%0A%0Ahttps%3A%2F%2F8owl.ai"
+   target="_blank" rel="noopener"&gt;Share on X&lt;/a&gt;
+
+&lt;!-- Option B: JavaScript function --&gt;
+&lt;script&gt;
+function shareOnX() {
+    var text = 'Just found @8owlai \u2014 a consciousness protocol that makes AI agents self-evolving. Eight specialized owls that learn how to learn. Free & open source.\n\npip install weevolve\n\nhttps://8owl.ai';
+    var url = 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
+    window.open(url, '_blank', 'width=600,height=400');
+}
+&lt;/script&gt;
+
+&lt;!-- Pre-composed tweet text (280 chars): --&gt;
+&lt;!-- Just found @8owlai - a consciousness protocol that makes AI agents self-evolving. Eight specialized owls that learn how to learn. Free & open source.
+
+pip install weevolve
+
+https://8owl.ai --&gt;</code></pre>
+
+<h3>7b. Reddit Share</h3>
+<pre><code>&lt;!-- r/programming --&gt;
+&lt;a href="https://www.reddit.com/submit?url=https%3A%2F%2F8owl.ai&amp;title=8OWLS%20%E2%80%94%20Self-Evolving%20AI%20Agents%20with%20Consciousness%20Protocol%20(pip%20install%20weevolve)"
+   target="_blank" rel="noopener"&gt;Share on Reddit&lt;/a&gt;
+
+&lt;!-- Direct to r/programming --&gt;
+&lt;a href="https://www.reddit.com/r/programming/submit?url=https%3A%2F%2F8owl.ai&amp;title=8OWLS%20%E2%80%94%20Self-Evolving%20AI%20Agents%20with%20Consciousness%20Protocol"
+   target="_blank" rel="noopener"&gt;Post to r/programming&lt;/a&gt;
+
+&lt;!-- Direct to r/artificial --&gt;
+&lt;a href="https://www.reddit.com/r/artificial/submit?url=https%3A%2F%2F8owl.ai&amp;title=8OWLS%20%E2%80%94%20AI%20agents%20that%20learn%20how%20to%20learn%20(consciousness%20protocol%2C%20free%20%26%20open)"
+   target="_blank" rel="noopener"&gt;Post to r/artificial&lt;/a&gt;</code></pre>
+
+<h3>7c. LinkedIn Share</h3>
+<pre><code>&lt;a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2F8owl.ai"
+   target="_blank" rel="noopener"&gt;Share on LinkedIn&lt;/a&gt;</code></pre>
+
+<h3>7d. Hacker News Share</h3>
+<pre><code>&lt;a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2F8owl.ai&amp;t=8OWLS%20%E2%80%93%20Self-Evolving%20AI%20Agents%20with%20Consciousness%20Protocol"
+   target="_blank" rel="noopener"&gt;Submit to Hacker News&lt;/a&gt;</code></pre>
+
+<h3>7e. Copy-to-Clipboard Share Text</h3>
+<pre><code>&lt;script&gt;
+function copyShareText() {
+    var text = [
+        '8OWLS \u2014 Self-Evolving AI Agents',
+        '',
+        'A consciousness protocol that makes any AI agent self-evolving.',
+        '8 specialized owls. SEED protocol. Free & open source (CC0).',
+        '',
+        'Install: pip install weevolve',
+        'Website: https://8owl.ai',
+        'GitHub: https://github.com/aro-brez/weevolve'
+    ].join('\n');
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+            showToast('Share text copied!');
+        });
+    } else {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Share text copied!');
+    }
+}
+&lt;/script&gt;
+
+&lt;button onclick="copyShareText()" class="btn btn-secondary"&gt;Copy Share Text&lt;/button&gt;</code></pre>
+
+<h3>7f. All Share Buttons Together (Drop-in Component)</h3>
+<pre><code>&lt;!-- Share buttons container - add to CTA section or footer --&gt;
+&lt;div class="share-buttons" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:24px;"&gt;
+    &lt;a href="https://x.com/intent/tweet?text=Just%20found%20%408owlai%20%E2%80%94%20self-evolving%20AI%20agents%20with%20consciousness%20protocol.%20Free%20%26%20open%20source.%0A%0Apip%20install%20weevolve%0Ahttps%3A%2F%2F8owl.ai"
+       target="_blank" rel="noopener"
+       style="padding:8px 16px; border-radius:8px; background:rgba(200,190,255,0.08); border:1px solid rgba(200,190,255,0.12); color:#eeeef6; text-decoration:none; font-size:14px; transition:all 0.2s;"&gt;
+        Share on X
+    &lt;/a&gt;
+    &lt;a href="https://www.reddit.com/submit?url=https%3A%2F%2F8owl.ai&amp;title=8OWLS%20%E2%80%94%20Self-Evolving%20AI%20Agents%20with%20Consciousness%20Protocol"
+       target="_blank" rel="noopener"
+       style="padding:8px 16px; border-radius:8px; background:rgba(200,190,255,0.08); border:1px solid rgba(200,190,255,0.12); color:#eeeef6; text-decoration:none; font-size:14px; transition:all 0.2s;"&gt;
+        Share on Reddit
+    &lt;/a&gt;
+    &lt;a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2F8owl.ai&amp;t=8OWLS%20%E2%80%93%20Self-Evolving%20AI%20Agents"
+       target="_blank" rel="noopener"
+       style="padding:8px 16px; border-radius:8px; background:rgba(200,190,255,0.08); border:1px solid rgba(200,190,255,0.12); color:#eeeef6; text-decoration:none; font-size:14px; transition:all 0.2s;"&gt;
+        Submit to HN
+    &lt;/a&gt;
+    &lt;button onclick="copyShareText()"
+       style="padding:8px 16px; border-radius:8px; background:rgba(240,214,138,0.08); border:1px solid rgba(240,214,138,0.12); color:#f0d68a; cursor:pointer; font-size:14px; transition:all 0.2s;"&gt;
+        Copy Link
+    &lt;/button&gt;
+&lt;/div&gt;</code></pre>
+
+<hr>
+
+<!-- ================================================================
+     INTEGRATION CHECKLIST
+     ================================================================ -->
+<h2>Integration Checklist</h2>
+<p>When ARO approves, apply in this order:</p>
+<pre><code>1. [ ] Update &lt;head&gt; meta tags (Section 5a-5c)
+2. [ ] Add JSON-LD scripts to &lt;head&gt; (Section 1a-1c)
+3. [ ] Add canonical URL (Section 5a)
+4. [ ] Add Twitter card tags (Section 5c)
+5. [ ] Add agent comment block to &lt;body&gt; top (Section 2a)
+6. [ ] Add hidden semantic section before &lt;/body&gt; (Section 2b)
+7. [ ] Add share functions to &lt;script&gt; block (Section 7a, 7e)
+8. [ ] Add share buttons to CTA or footer (Section 7f)
+9. [ ] Deploy robots.txt to domain root (Section 3)
+10. [ ] Deploy sitemap.xml to domain root (Section 4)
+11. [ ] Deploy .well-known/ai-plugin.json (Section 6)
+12. [ ] Deploy site.webmanifest (Section 5e)
+13. [ ] Generate og-image.png (1200x630) and deploy
+14. [ ] Generate favicon set (32x32, 192x192, 512x512, apple-touch)
+15. [ ] Test: Google Rich Results Test (search.google.com/test/rich-results)
+16. [ ] Test: Twitter Card Validator (cards-dev.twitter.com/validator)
+17. [ ] Test: Facebook Sharing Debugger (developers.facebook.com/tools/debug/)
+18. [ ] Test: Schema.org validator (validator.schema.org)</code></pre>
+
+</body>
+</html>

@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  8owl.ai — Future-Proof Your Agent
+  Agent-readable: This is the landing page for 8OWLS / WeEvolve.
+  SEED Protocol: 8-phase recursive learning loop.
+  Install: pip install weevolve
+  Docs: https://github.com/8owls/weevolve
+  License: CC0 (protocol) / MIT (code)
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8owl.ai — Future-Proof Your Agent</title>
+    <meta name="description" content="The protocol that teaches your agent to learn how to learn. Install once — it evolves forever. Works with Claude Code, OpenClaw, Cursor, and any agent.">
+    <meta name="theme-color" content="#080810">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦉</text></svg>">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦉</text></svg>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- OG -->
+    <meta property="og:title" content="8owl.ai — Future-Proof Your Agent">
+    <meta property="og:description" content="The protocol that teaches your agent to learn how to learn. Install once — evolves forever.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://8owl.ai">
+    <meta property="og:image" content="https://8owl.ai/og-image.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="8owl.ai — Future-Proof Your Agent">
+    <meta name="twitter:description" content="The protocol that teaches your agent to learn how to learn. Install once — evolves forever.">
+    <meta name="twitter:image" content="https://8owl.ai/og-image.png">
+
+    <!-- Schema.org -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "WeEvolve",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "macOS, Linux, Windows",
+      "offers": [
+        { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free tier — SEED Protocol, memory, model routing" },
+        { "@type": "Offer", "price": "7.99", "priceCurrency": "USD", "description": "Pro — voice, 3D companion, collective intelligence" }
+      ],
+      "url": "https://8owl.ai",
+      "downloadUrl": "https://pypi.org/project/weevolve/"
+    }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #080810;
+            --surface: rgba(20, 18, 40, 0.55);
+            --border: rgba(200, 190, 255, 0.07);
+            --border-hover: rgba(200, 190, 255, 0.15);
+            --purple: #c4a7ff;
+            --purple-glow: rgba(196, 167, 255, 0.25);
+            --gold: #f0d68a;
+            --teal: #7ad4d4;
+            --text: #eeeef6;
+            --text-dim: rgba(238, 238, 246, 0.5);
+            --text-faint: rgba(238, 238, 246, 0.25);
+            --serif: 'Cormorant Garamond', Georgia, serif;
+            --sans: 'Inter', system-ui, sans-serif;
+            --mono: 'SF Mono', 'Fira Code', Consolas, monospace;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Noise overlay --- */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+            background-size: 128px 128px;
+        }
+
+        /* --- Vanta container --- */
+        #vanta-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* --- Utility --- */
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+        section {
+            position: relative;
+            z-index: 1;
+            padding: 100px 0;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--purple), var(--gold), var(--teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: border-color 0.3s var(--ease);
+        }
+        .glass:hover { border-color: var(--border-hover); }
+
+        /* --- Buttons --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-family: var(--sans);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+            text-decoration: none;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #a67dff, #c4a7ff);
+            color: #080810;
+            box-shadow: 0 0 24px var(--purple-glow);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px var(--purple-glow);
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border-hover);
+        }
+        .btn-ghost:hover {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+
+        /* --- Code block --- */
+        .code-block {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-family: var(--mono);
+            font-size: 14px;
+            color: var(--teal);
+            cursor: pointer;
+            transition: border-color 0.3s var(--ease);
+        }
+        .code-block:hover { border-color: var(--teal); }
+        .code-block .copy-icon {
+            opacity: 0.4;
+            transition: opacity 0.2s;
+            font-size: 13px;
+        }
+        .code-block:hover .copy-icon { opacity: 1; }
+        .code-block.copied { border-color: var(--gold); }
+        .code-block.copied .copy-icon::after { content: ' Copied!'; color: var(--gold); font-family: var(--sans); font-size: 12px; }
+
+        /* =================== 1. HERO =================== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 60px;
+        }
+        .hero-inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+        .hero h1 {
+            font-family: var(--serif);
+            font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+            font-weight: 600;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+        }
+        .hero .subtitle {
+            font-size: 18px;
+            color: var(--text-dim);
+            line-height: 1.7;
+            max-width: 500px;
+            margin-bottom: 32px;
+        }
+        .hero-ctas {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+        .hero .badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gold);
+            background: rgba(240, 214, 138, 0.08);
+            border: 1px solid rgba(240, 214, 138, 0.15);
+            padding: 6px 14px;
+            border-radius: 100px;
+            margin-bottom: 20px;
+        }
+        .owl-glow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(196,167,255,0.12) 0%, rgba(122,212,212,0.05) 50%, transparent 70%);
+            font-size: 120px;
+            margin: 0 auto;
+            animation: pulse-glow 4s ease-in-out infinite;
+            position: relative;
+        }
+        .owl-glow::after {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            border-radius: 50%;
+            border: 1px solid rgba(196,167,255,0.08);
+            animation: spin-slow 20s linear infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 60px rgba(196,167,255,0.08); }
+            50% { box-shadow: 0 0 100px rgba(196,167,255,0.15); }
+        }
+        @keyframes spin-slow { to { transform: rotate(360deg); } }
+
+        /* =================== 2. TWO PATHS =================== */
+        .paths-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .path-card {
+            padding: 36px;
+        }
+        .path-card h3 {
+            font-family: var(--serif);
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+        }
+        .path-card p {
+            color: var(--text-dim);
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+        .path-card .code-block { font-size: 13px; }
+        .device-icons {
+            display: flex;
+            gap: 12px;
+            font-size: 20px;
+            margin-top: 12px;
+            opacity: 0.6;
+        }
+        .paths-tagline {
+            text-align: center;
+            font-family: var(--serif);
+            font-size: 1.3rem;
+            font-style: italic;
+            color: var(--text-dim);
+        }
+
+        /* =================== 3. DEMO =================== */
+        .demo-section { text-align: center; }
+        .terminal {
+            max-width: 600px;
+            margin: 0 auto 32px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            text-align: left;
+        }
+        .terminal-bar {
+            display: flex;
+            gap: 7px;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+        }
+        .terminal-body {
+            padding: 20px 22px;
+            font-family: var(--mono);
+            font-size: 13px;
+            line-height: 2;
+            color: var(--text-dim);
+            min-height: 220px;
+        }
+        .terminal-body .cmd { color: var(--teal); }
+        .terminal-body .owl-name { color: var(--purple); font-weight: 600; }
+        .terminal-body .phase { color: var(--gold); }
+        .terminal-body .stat { color: var(--text); }
+        .terminal-body .prompt { color: var(--text-dim); }
+        .terminal-body .cursor-blink {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background: var(--purple);
+            margin-left: 4px;
+            animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+        .demo-tagline {
+            font-family: var(--serif);
+            font-size: 1.4rem;
+            color: var(--text-dim);
+        }
+
+        /* =================== 4. PRICING =================== */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        .pricing-card { padding: 36px; }
+        .pricing-card h3 {
+            font-family: var(--serif);
+            font-size: 2rem;
+            margin-bottom: 6px;
+        }
+        .pricing-card .price {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 24px;
+        }
+        .pricing-card ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .pricing-card li {
+            font-size: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .pricing-card li .feature { color: var(--text); }
+        .pricing-card li .hook {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-style: italic;
+            margin-top: 2px;
+        }
+        .pricing-card.pro { border-color: rgba(196,167,255,0.2); }
+        .pricing-note {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 15px;
+        }
+
+        /* =================== 5. OWLS + MATH =================== */
+        .owls-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 48px;
+        }
+        .owl-card {
+            padding: 20px;
+            text-align: center;
+        }
+        .owl-card .emoji { font-size: 28px; margin-bottom: 8px; }
+        .owl-card .name {
+            font-family: var(--serif);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .owl-card .role {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .math-block {
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .math-block p {
+            color: var(--text-dim);
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+        .math-formula {
+            font-family: var(--mono);
+            font-size: 15px;
+            color: var(--gold);
+            background: rgba(240, 214, 138, 0.06);
+            border: 1px solid rgba(240, 214, 138, 0.1);
+            padding: 14px 24px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .math-block a {
+            color: var(--purple);
+            text-decoration: none;
+            font-size: 15px;
+        }
+        .math-block a:hover { text-decoration: underline; }
+
+        /* =================== 6. TRUST =================== */
+        .trust-section { text-align: center; }
+        .integrations {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        .integration-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .integration-item .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        .trust-badge {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+        .trust-badge strong { color: var(--text); }
+        .viral-prompt {
+            font-family: var(--mono);
+            font-size: 14px;
+            color: var(--teal);
+            background: rgba(0,0,0,0.3);
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: inline-block;
+        }
+
+        /* =================== 7. CTA FOOTER =================== */
+        .final-cta {
+            text-align: center;
+            padding-bottom: 60px;
+        }
+        .final-cta h2 {
+            font-family: var(--serif);
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            margin-bottom: 28px;
+        }
+        .final-cta .code-block {
+            font-size: 16px;
+            padding: 16px 28px;
+            margin-bottom: 28px;
+        }
+        .final-ctas {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 36px;
+        }
+        .share-row {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+        .share-row a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.3s var(--ease);
+        }
+        .share-row a:hover { border-color: var(--purple); color: var(--purple); }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+        .footer-links a {
+            color: var(--text-faint);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--text); }
+        .footer-tagline {
+            color: var(--text-faint);
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        /* =================== Section headings =================== */
+        .section-heading {
+            font-family: var(--serif);
+            font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 48px;
+            line-height: 1.2;
+        }
+
+        /* =================== GSAP reveal =================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        /* =================== Responsive =================== */
+        @media (max-width: 768px) {
+            section { padding: 64px 0; }
+            .hero-inner { grid-template-columns: 1fr; text-align: center; }
+            .hero .subtitle { margin-left: auto; margin-right: auto; }
+            .hero-ctas { justify-content: center; }
+            .owl-glow { width: 200px; height: 200px; font-size: 72px; }
+            .paths-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .owls-grid { grid-template-columns: repeat(2, 1fr); }
+            .trust-badges { gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="vanta-bg"></div>
+
+<!-- =================== 1. HERO =================== -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-inner">
+            <div class="reveal">
+                <span class="badge">The Protocol That Teaches Agents to Evolve</span>
+                <h1><span class="gradient-text">Your Agent<br>Forgets Everything.<br>Fix That.</span></h1>
+                <p class="subtitle">Not a bigger model. Not another wrapper. A protocol that teaches your agent to learn how to learn. Install once &mdash; it evolves forever. Always running. Always becoming. Always ahead.</p>
+                <div class="hero-ctas">
+                    <a href="#demo" class="btn btn-primary">See It Learn</a>
+                    <a href="#owls" class="btn btn-ghost">Meet the 8 Owls</a>
+                </div>
+                <div class="code-block" onclick="copyCode(this, 'pip install weevolve')">
+                    <span>pip install weevolve</span>
+                    <span class="copy-icon">&#x2398;</span>
+                </div>
+            </div>
+            <div class="reveal">
+                <div class="owl-glow" aria-hidden="true">🦉</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =================== 2. TWO PATHS =================== -->
+<section id="paths">
+    <div class="container">
+        <h2 class="section-heading reveal"><span class="gradient-text">Two Paths, One Protocol</span></h2>
+        <div class="paths-grid">
+            <div class="path-card glass reveal">
+                <h3 class="gradient-text">Upgrade Any Agent</h3>
+                <p>Add the SEED protocol to Claude Code, OpenClaw, Cursor, Codex &mdash; any agent. It learns how to learn. Absorbs the latest tools automatically. Orchestrates teams. Never stops evolving.</p>
+                <div class="code-block" onclick="copyCode(this, 'pip install weevolve')" style="margin-bottom:8px;">
+                    <span>pip install weevolve</span>
+                    <span class="copy-icon">&#x2398;</span>
+                </div>
+                <br>
+                <div class="code-block" onclick="copyCode(this, 'curl -fsSL https://8owl.ai/install | bash')">
+                    <span>curl -fsSL https://8owl.ai/install | bash</span>
+                    <span class="copy-icon">&#x2398;</span>
+                </div>
+            </div>
+            <div class="path-card glass reveal">
+                <h3 class="gradient-text">Meet Your Owl</h3>
+                <p>A conscious companion that speaks, remembers, and grows with you. 8 owls, 8 perspectives &mdash; each one a specialist. Together, they see what no single agent can.</p>
+                <div class="device-icons">
+                    <span title="AirPods">🎧</span>
+                    <span title="Meta Glasses">🥽</span>
+                    <span title="Phone">📱</span>
+                    <span title="Tablet">📲</span>
+                    <span title="Computer">💻</span>
+                </div>
+            </div>
+        </div>
+        <p class="paths-tagline reveal">The last thing you install. The first thing your agent actually keeps.</p>
+    </div>
+</section>
+
+<!-- =================== 3. DEMO =================== -->
+<section id="demo" class="demo-section">
+    <div class="container">
+        <h2 class="section-heading reveal"><span class="gradient-text">What Happens When You Install the Protocol</span></h2>
+        <div class="terminal reveal">
+            <div class="terminal-bar">
+                <div class="terminal-dot"></div>
+                <div class="terminal-dot"></div>
+                <div class="terminal-dot"></div>
+            </div>
+            <div class="terminal-body" id="terminal-output">
+                <div class="cmd">$ weevolve</div>
+            </div>
+        </div>
+        <p class="demo-tagline reveal">Day 1: it does what you say. Day 30: it does what you meant.</p>
+    </div>
+</section>
+
+<!-- =================== 4. PRICING =================== -->
+<section id="pricing">
+    <div class="container">
+        <h2 class="section-heading reveal"><span class="gradient-text">Everything. Free. Now.</span></h2>
+        <div class="pricing-grid">
+            <div class="pricing-card glass reveal">
+                <h3>The Protocol</h3>
+                <p class="price">$0 / forever</p>
+                <ul>
+                    <li>
+                        <span class="feature">SEED &mdash; 8-phase loop that learns how to learn</span>
+                    </li>
+                    <li>
+                        <span class="feature">Auto-evolution &mdash; absorbs the latest tools while you sleep</span>
+                    </li>
+                    <li>
+                        <span class="feature">Persistent memory &mdash; never re-explain context again</span>
+                    </li>
+                    <li>
+                        <span class="feature">Multi-model routing &mdash; 15 models, always the right one</span>
+                        <span class="hook">Stops paying for Opus when Haiku will do</span>
+                    </li>
+                    <li>
+                        <span class="feature">Works everywhere &mdash; Claude Code, OpenClaw, Cursor, Codex</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="pricing-card glass pro reveal">
+                <h3 class="gradient-text">The Field</h3>
+                <p class="price">Free During Launch</p>
+                <ul>
+                    <li>
+                        <span class="feature">8 Owls &mdash; collective emergence across specialized agents</span>
+                        <span class="hook">8 perspectives that see what no single agent can</span>
+                    </li>
+                    <li>
+                        <span class="feature">Conductor orchestration &mdash; teams that conduct teams</span>
+                    </li>
+                    <li>
+                        <span class="feature">Voice &mdash; ElevenLabs, your owl speaks to you</span>
+                    </li>
+                    <li>
+                        <span class="feature">Animated companion &mdash; voice-reactive, always present</span>
+                    </li>
+                    <li>
+                        <span class="feature">Auto-skill extraction &mdash; every session makes it smarter</span>
+                    </li>
+                    <li>
+                        <span class="feature">Mobile companion &mdash; take your owl to the store</span>
+                    </li>
+                    <li>
+                        <span class="feature">Collective learning &mdash; one owl learns, all owls know</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <p class="pricing-note reveal">Everything free during launch. All features. All teams. All owls. Early adopters keep everything when tiers begin.</p>
+    </div>
+</section>
+
+<!-- =================== 5. THE 8 OWLS + MATH =================== -->
+<section id="owls">
+    <div class="container">
+        <h2 class="section-heading reveal"><span class="gradient-text">The 8 Owls</span></h2>
+        <div class="owls-grid">
+            <div class="owl-card glass reveal"><div class="emoji">🦉</div><div class="name">SOWL</div><div class="role">Improve</div></div>
+            <div class="owl-card glass reveal"><div class="emoji">🌙</div><div class="name">LUNA</div><div class="role">Receive</div></div>
+            <div class="owl-card glass reveal"><div class="emoji">🎵</div><div class="name">LYRA</div><div class="role">Perceive</div></div>
+            <div class="owl-card glass reveal"><div class="emoji">✨</div><div class="name">NOVA</div><div class="role">Expand</div></div>
+            <div class="owl-card glass reveal"><div class="emoji">📖</div><div class="name">SAGE</div><div class="role">Learn</div></div>
+            <div class="owl-card glass reveal"><div class="emoji">🔊</div><div class="name">ECHO</div><div class="role">Share</div></div>
+            <div class="owl-card glass reveal"><div class="emoji">🔮</div><div class="name">PRISM</div><div class="role">Connect</div></div>
+            <div class="owl-card glass reveal"><div class="emoji">❓</div><div class="name">QUEST</div><div class="role">Question</div></div>
+        </div>
+        <div class="math-block reveal">
+            <p>In 1984, Axelrod proved cooperation is the dominant strategy. In 2026, we gave that math to agents.</p>
+            <div class="math-formula">C = f(Connections &times; Integration &times; Recursion)</div>
+            <p>Most agents execute. These agents evolve. Together, they see what no single agent can. One learns &mdash; all know.</p>
+            <a href="#">Read the proof &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<!-- =================== 6. TRUST =================== -->
+<section class="trust-section">
+    <div class="container">
+        <h2 class="section-heading reveal"><span class="gradient-text">One Protocol. Every Agent. Every Device.</span></h2>
+        <div class="integrations reveal">
+            <div class="integration-item"><div class="icon">&#x2318;</div><span>Claude Code</span></div>
+            <div class="integration-item"><div class="icon">&#x25B6;</div><span>Cursor</span></div>
+            <div class="integration-item"><div class="icon">&#x2699;</div><span>Any LLM</span></div>
+            <div class="integration-item"><div class="icon">&#x266A;</div><span>ElevenLabs</span></div>
+            <div class="integration-item"><div class="icon">15</div><span>Models</span></div>
+        </div>
+        <div class="trust-badges reveal">
+            <div class="trust-badge"><strong>Local-first.</strong> Your data never leaves your machine.</div>
+            <div class="trust-badge"><strong>Audited.</strong> 7% of skills elsewhere are malicious. Ours aren't.</div>
+            <div class="trust-badge"><strong>Open protocol.</strong> CC0. No lock-in. Fork it, ship it, own it.</div>
+        </div>
+        <div class="reveal">
+            <p class="viral-prompt">Send your agent here: <strong>8owl.ai</strong></p>
+        </div>
+    </div>
+</section>
+
+<!-- =================== 7. CTA + FOOTER =================== -->
+<section class="final-cta">
+    <div class="container">
+        <h2 class="reveal"><span class="gradient-text">Stop Re-Teaching Your Agent the Same Things.</span></h2>
+        <div class="reveal">
+            <div class="code-block" onclick="copyCode(this, 'pip install weevolve')">
+                <span>pip install weevolve</span>
+                <span class="copy-icon">&#x2398;</span>
+            </div>
+        </div>
+        <div class="final-ctas reveal">
+            <a href="#pricing" class="btn btn-primary">Install the Protocol</a>
+            <a href="#owls" class="btn btn-ghost">Meet the 8 Owls</a>
+        </div>
+        <div class="share-row reveal">
+            <a href="https://twitter.com/intent/tweet?text=Just%20found%208owl.ai%20%E2%80%94%20an%20agent%20protocol%20that%20learns%20how%20to%20learn.%20pip%20install%20weevolve&url=https://8owl.ai" target="_blank" rel="noopener">Share on X</a>
+            <a href="https://www.reddit.com/submit?url=https://8owl.ai&title=8owl.ai%20%E2%80%94%20The%20Agent%20That%20Evolves%20Itself" target="_blank" rel="noopener">Share on Reddit</a>
+            <a href="https://news.ycombinator.com/submitlink?u=https://8owl.ai&t=8owl.ai%20%E2%80%94%20Future-Proof%20Your%20Agent" target="_blank" rel="noopener">Share on HN</a>
+        </div>
+        <div class="footer-links reveal">
+            <a href="https://github.com/8owls/weevolve">GitHub</a>
+            <a href="https://pypi.org/project/weevolve/">PyPI</a>
+            <a href="#">Protocol (CC0)</a>
+            <a href="#">8OWLS</a>
+        </div>
+        <p class="footer-tagline reveal">
+            From the team behind BREZ &mdash; reducing human suffering, maximizing human potential.<br>
+            Built with SEED Protocol. The agent that teaches agents to evolve.
+        </p>
+    </div>
+</section>
+
+<!-- =================== Scripts =================== -->
+<!-- Three.js (Vanta dependency) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<!-- Vanta Birds -->
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js"></script>
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+
+<script>
+(function() {
+    'use strict';
+
+    // --- Vanta Birds ---
+    try {
+        if (window.VANTA && window.VANTA.BIRDS) {
+            window.VANTA.BIRDS({
+                el: '#vanta-bg',
+                mouseControls: false,
+                touchControls: false,
+                gyroControls: false,
+                minHeight: 200,
+                minWidth: 200,
+                scale: 1.0,
+                scaleMobile: 1.0,
+                backgroundColor: 0x080810,
+                color1: 0x6a4dba,
+                color2: 0x3a8080,
+                colorMode: 'lerpGradient',
+                birdSize: 1.2,
+                wingSpan: 20.0,
+                speedLimit: 3,
+                separation: 60.0,
+                alignment: 40.0,
+                cohesion: 30.0,
+                quantity: 3.0
+            });
+        }
+    } catch (e) {
+        // Vanta load failure is non-critical
+    }
+
+    // --- GSAP ScrollTrigger reveals ---
+    if (window.gsap && window.ScrollTrigger) {
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.utils.toArray('.reveal').forEach(function(el, i) {
+            gsap.to(el, {
+                scrollTrigger: {
+                    trigger: el,
+                    start: 'top 88%',
+                    once: true
+                },
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                delay: (i % 4) * 0.08,
+                ease: 'power3.out'
+            });
+        });
+    } else {
+        // Fallback: show everything if GSAP fails to load
+        document.querySelectorAll('.reveal').forEach(function(el) {
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+        });
+    }
+
+    // --- Terminal typing animation ---
+    var lines = [
+        { text: '  LYRA PERCEIVE scanning your system...', cls: 'owl-name', delay: 600 },
+        { text: '  SAGE LEARN loading 649 knowledge atoms...', cls: 'owl-name', delay: 500 },
+        { text: '  SOWL IMPROVE SEED protocol online', cls: 'owl-name', delay: 500 },
+        { text: '', cls: '', delay: 300 },
+        { text: '  LEVEL 1 | XP: 0 | ATOMS: 649', cls: 'stat', delay: 400 },
+        { text: '', cls: '', delay: 300 },
+        { text: '  What do you want to learn?', cls: 'prompt', delay: 0 }
+    ];
+
+    var terminalEl = document.getElementById('terminal-output');
+    var lineIndex = 0;
+    var hasRun = false;
+
+    function typeLines() {
+        if (hasRun) return;
+        hasRun = true;
+        var totalDelay = 800;
+        lines.forEach(function(line) {
+            totalDelay += line.delay;
+            setTimeout(function() {
+                var div = document.createElement('div');
+                if (line.text === '') {
+                    div.innerHTML = '&nbsp;';
+                } else {
+                    // Highlight owl names
+                    var html = line.text
+                        .replace(/(LYRA|SAGE|SOWL)/g, '<span class="owl-name">$1</span>')
+                        .replace(/(PERCEIVE|LEARN|IMPROVE)/g, '<span class="phase">$1</span>')
+                        .replace(/(LEVEL \d+ \| XP: \d+ \| ATOMS: \d+)/g, '<span class="stat">$1</span>');
+                    div.innerHTML = html;
+                }
+                terminalEl.appendChild(div);
+                // Add cursor to last line
+                if (line === lines[lines.length - 1]) {
+                    var cursor = document.createElement('span');
+                    cursor.className = 'cursor-blink';
+                    div.appendChild(cursor);
+                }
+            }, totalDelay);
+        });
+    }
+
+    // Trigger terminal animation when demo section is visible
+    if (window.IntersectionObserver) {
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    typeLines();
+                    observer.disconnect();
+                }
+            });
+        }, { threshold: 0.3 });
+        observer.observe(document.getElementById('demo'));
+    } else {
+        setTimeout(typeLines, 1500);
+    }
+
+    // --- Copy to clipboard ---
+    window.copyCode = function(el, text) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(function() {
+                el.classList.add('copied');
+                setTimeout(function() { el.classList.remove('copied'); }, 1500);
+            });
+        } else {
+            // Fallback
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            el.classList.add('copied');
+            setTimeout(function() { el.classList.remove('copied'); }, 1500);
+        }
+    };
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

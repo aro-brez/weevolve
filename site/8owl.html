@@ -67,106 +67,19 @@
         .noise {
             position: fixed; inset: 0; z-index: 0;
             pointer-events: none;
-            opacity: 0.035;
+            opacity: 0.02;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
             background-repeat: repeat;
             background-size: 256px 256px;
         }
 
         /* ================================================
-           SACRED GEOMETRY BACKGROUND
+           CANVAS BACKGROUND
            ================================================ */
-        .sacred-geometry {
+        #bg-canvas {
             position: fixed; inset: 0; z-index: 0;
-            pointer-events: none; overflow: hidden;
-        }
-        .sacred-geometry::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 1200px; height: 1200px;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            border: 1px solid rgba(196, 167, 255, 0.03);
-            animation: sg-rotate 120s linear infinite;
-        }
-        .sacred-geometry::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 800px; height: 800px;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            border: 1px solid rgba(240, 214, 138, 0.03);
-            animation: sg-rotate 90s linear infinite reverse;
-        }
-        .sg-ring {
-            position: absolute;
-            top: 50%; left: 50%;
-            border-radius: 50%;
-            border: 1px solid rgba(122, 212, 212, 0.025);
-        }
-        .sg-ring:nth-child(1) {
-            width: 400px; height: 400px;
-            transform: translate(-50%, -50%);
-            animation: sg-rotate 60s linear infinite;
-        }
-        .sg-ring:nth-child(2) {
-            width: 600px; height: 600px;
-            transform: translate(-50%, -50%);
-            animation: sg-rotate 80s linear infinite reverse;
-        }
-        .sg-ring:nth-child(3) {
-            width: 1000px; height: 1000px;
-            transform: translate(-50%, -50%);
-            animation: sg-rotate 100s linear infinite;
-        }
-        .sg-line {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 1400px; height: 1px;
-            background: linear-gradient(90deg, transparent 0%, rgba(196, 167, 255, 0.02) 30%, rgba(196, 167, 255, 0.04) 50%, rgba(196, 167, 255, 0.02) 70%, transparent 100%);
-            transform-origin: center center;
-        }
-        .sg-line:nth-child(4) { transform: translate(-50%, 0) rotate(0deg); }
-        .sg-line:nth-child(5) { transform: translate(-50%, 0) rotate(60deg); }
-        .sg-line:nth-child(6) { transform: translate(-50%, 0) rotate(120deg); }
-        @keyframes sg-rotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
-
-        /* ================================================
-           AURORA GRADIENT BLOBS
-           ================================================ */
-        .aurora {
-            position: fixed; inset: 0; z-index: 0;
-            pointer-events: none; overflow: hidden;
-        }
-        .aurora i {
-            position: absolute; border-radius: 50%;
-            filter: blur(160px); opacity: 0.07; will-change: transform;
-        }
-        .aurora i:nth-child(1) {
-            width: 800px; height: 800px; background: var(--purple);
-            top: -25%; left: 0%; animation: a1 28s ease-in-out infinite;
-        }
-        .aurora i:nth-child(2) {
-            width: 600px; height: 600px; background: var(--teal);
-            top: 40%; right: -15%; animation: a2 24s ease-in-out infinite;
-        }
-        .aurora i:nth-child(3) {
-            width: 900px; height: 900px; background: var(--gold);
-            bottom: -30%; left: 15%; animation: a3 32s ease-in-out infinite;
-        }
-        @keyframes a1 {
-            0%,100% { transform: translate(0,0) scale(1); }
-            50% { transform: translate(100px,80px) scale(1.08); }
-        }
-        @keyframes a2 {
-            0%,100% { transform: translate(0,0) scale(1); }
-            50% { transform: translate(-80px,-60px) scale(1.06); }
-        }
-        @keyframes a3 {
-            0%,100% { transform: translate(0,0) scale(1); }
-            50% { transform: translate(60px,-70px) scale(1.04); }
+            pointer-events: none;
+            width: 100%; height: 100%;
         }
 
         /* ================================================
@@ -223,6 +136,13 @@
            HERO
            ================================================ */
         .hero { padding: 200px 0 140px; text-align: center; }
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 40px;
+            align-items: center;
+        }
+        .hero-text { text-align: left; }
         .hero-badge {
             display: inline-flex; align-items: center; gap: 8px;
             padding: 6px 16px 6px 12px; border-radius: 100px;
@@ -246,7 +166,7 @@
         }
         .hero-sub {
             font-size: clamp(16px, 2vw, 19px); color: var(--text-secondary);
-            max-width: 520px; margin: 0 auto 56px; line-height: 1.8;
+            max-width: 520px; margin: 0 0 56px; line-height: 1.8;
             font-weight: 400;
         }
         .hero-install {
@@ -276,7 +196,18 @@
         .hero-hint {
             font-size: 13px; color: var(--text-tertiary); margin-top: 8px; margin-bottom: 40px;
         }
-        .hero-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+        .hero-buttons { display: flex; gap: 14px; justify-content: flex-start; flex-wrap: wrap; }
+
+        /* Hero Owl 3D Canvas */
+        #owl-hero {
+            width: 400px; height: 400px;
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #owl-hero canvas {
+            width: 100% !important; height: 100% !important;
+            border-radius: 20px;
+        }
 
         /* ================================================
            BUTTONS
@@ -312,31 +243,7 @@
             box-shadow: 0 8px 32px var(--gold-glow);
         }
 
-        /* ================================================
-           FLOATING PARTICLES (CSS-only)
-           ================================================ */
-        .particles {
-            position: absolute; inset: 0; overflow: hidden; pointer-events: none;
-        }
-        .particle {
-            position: absolute; width: 2px; height: 2px;
-            background: var(--purple); border-radius: 50%;
-            opacity: 0; animation: particle-float 8s ease-in-out infinite;
-        }
-        .particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; animation-duration: 7s; }
-        .particle:nth-child(2) { left: 25%; top: 60%; animation-delay: 1.2s; animation-duration: 9s; background: var(--gold); }
-        .particle:nth-child(3) { left: 45%; top: 35%; animation-delay: 2.4s; animation-duration: 6s; background: var(--teal); }
-        .particle:nth-child(4) { left: 65%; top: 70%; animation-delay: 0.8s; animation-duration: 8s; }
-        .particle:nth-child(5) { left: 80%; top: 25%; animation-delay: 3s; animation-duration: 10s; background: var(--gold); }
-        .particle:nth-child(6) { left: 90%; top: 55%; animation-delay: 1.8s; animation-duration: 7.5s; background: var(--teal); }
-        .particle:nth-child(7) { left: 35%; top: 80%; animation-delay: 4s; animation-duration: 8.5s; }
-        .particle:nth-child(8) { left: 55%; top: 15%; animation-delay: 2s; animation-duration: 9.5s; background: var(--rose); }
-        @keyframes particle-float {
-            0%, 100% { opacity: 0; transform: translateY(0) scale(1); }
-            10% { opacity: 0.6; }
-            50% { opacity: 0.3; transform: translateY(-80px) scale(1.5); }
-            90% { opacity: 0.5; }
-        }
+        /* (CSS particles removed — now canvas-based) */
 
         /* ================================================
            SECTION COMMON
@@ -836,6 +743,21 @@
             .feature-card.span-col-2 { grid-column: span 1; }
         }
 
+        @media (max-width: 900px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .hero-text { text-align: center; order: 2; }
+            #owl-hero {
+                order: 1;
+                width: 300px; height: 300px;
+                margin: 0 auto;
+            }
+            .hero-sub { margin-left: auto; margin-right: auto; }
+            .hero-buttons { justify-content: center; }
+        }
+
         @media (max-width: 768px) {
             .hero { padding: 160px 0 100px; }
             .nav-r a:not(.nav-pill) { display: none; }
@@ -847,6 +769,7 @@
             .hero-install code, .cta-install code { font-size: 14px; }
             .terminal-body { font-size: 12px; padding: 18px; }
             .math-section { padding: 100px 0; }
+            #owl-hero { width: 260px; height: 260px; }
         }
 
         @media (max-width: 600px) {
@@ -860,6 +783,179 @@
             .btn { width: 100%; max-width: 280px; justify-content: center; }
             .hero h1 { letter-spacing: -0.5px; }
             .proof-grid { flex-direction: column; gap: 24px; }
+        }
+
+        /* ================================================
+           BEGINNER ONBOARDING SECTION
+           ================================================ */
+        .beginner {
+            padding: 100px 0 120px;
+            position: relative;
+        }
+        .beginner::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 5%, var(--purple-glow) 30%, var(--gold-glow) 50%, var(--teal-glow) 70%, transparent 95%);
+        }
+        .beginner h2 {
+            font-family: var(--serif);
+            font-size: clamp(32px, 5vw, 52px);
+            font-weight: 400; letter-spacing: -0.5px;
+            margin-bottom: 16px; text-align: center;
+            line-height: 1.15;
+        }
+        .path-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 64px;
+        }
+        .path-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px 28px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            transition: all 0.4s var(--ease);
+        }
+        .path-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 16px 16px 0 0;
+        }
+        .path-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+            background: var(--surface-hover);
+        }
+        .beginner-card::before { background: linear-gradient(90deg, transparent, #28c840, transparent); }
+        .dev-card::before { background: linear-gradient(90deg, transparent, var(--purple), transparent); }
+        .curious-card::before { background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+        .path-icon {
+            font-size: 36px; margin-bottom: 16px; display: block;
+        }
+        .path-card h3 {
+            font-family: var(--serif);
+            font-size: 22px; font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .path-card > p {
+            font-size: 14px; color: var(--text-secondary);
+            line-height: 1.65; margin-bottom: 20px;
+        }
+        .path-steps {
+            margin-bottom: 20px;
+        }
+        .path-steps .step {
+            font-size: 13.5px; color: var(--text-secondary);
+            line-height: 1.7; padding: 2px 0;
+        }
+        .code-inline {
+            display: block;
+            font-family: var(--mono);
+            font-size: 13.5px; color: var(--text);
+            background: rgba(8, 8, 16, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        .code-inline:hover {
+            border-color: var(--purple-dim);
+            box-shadow: 0 0 20px rgba(196, 167, 255, 0.06), 0 0 0 1px var(--purple-dim);
+        }
+        .code-inline::after {
+            content: 'click to copy';
+            position: absolute; right: 12px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px; color: var(--text-tertiary);
+            font-family: var(--sans);
+            text-transform: uppercase; letter-spacing: 1px;
+            opacity: 0; transition: opacity 0.25s;
+        }
+        .code-inline:hover::after { opacity: 1; }
+        .path-cta {
+            display: inline-block;
+            font-size: 15px; font-weight: 600;
+            color: var(--gold); text-decoration: none;
+            padding: 10px 0; margin-bottom: 12px;
+            transition: color 0.25s;
+        }
+        .path-cta:hover { color: var(--text); }
+        .path-result {
+            font-size: 13px; font-weight: 600;
+            color: #a8e6a0;
+            line-height: 1.5;
+        }
+
+        /* Beginner FAQ */
+        .beginner-faq {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        .beginner-faq h3 {
+            font-family: var(--serif);
+            font-size: 24px; font-weight: 400;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .beginner-faq details {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            background: var(--surface);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+        .beginner-faq details:hover {
+            border-color: var(--border-hover);
+        }
+        .beginner-faq details[open] {
+            border-color: var(--purple-dim);
+        }
+        .beginner-faq summary {
+            padding: 18px 24px;
+            font-size: 15px; font-weight: 600;
+            cursor: pointer;
+            list-style: none;
+            display: flex; align-items: center; justify-content: space-between;
+            color: var(--text);
+            transition: color 0.25s;
+        }
+        .beginner-faq summary::-webkit-details-marker { display: none; }
+        .beginner-faq summary::after {
+            content: '+';
+            font-size: 20px; font-weight: 300;
+            color: var(--text-tertiary);
+            transition: transform 0.3s var(--ease), color 0.3s;
+            flex-shrink: 0; margin-left: 16px;
+        }
+        .beginner-faq details[open] summary::after {
+            transform: rotate(45deg);
+            color: var(--purple);
+        }
+        .beginner-faq details p {
+            padding: 0 24px 20px;
+            font-size: 14px; color: var(--text-secondary);
+            line-height: 1.7;
+            animation: faq-open 0.3s var(--ease-out);
+        }
+        @keyframes faq-open {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Beginner section responsive */
+        @media (max-width: 900px) {
+            .path-grid { grid-template-columns: 1fr; }
         }
 
         /* ================================================
@@ -1181,16 +1277,8 @@
 <body>
 
 <!-- Background layers -->
+<canvas id="bg-canvas"></canvas>
 <div class="noise"></div>
-<div class="sacred-geometry">
-    <div class="sg-ring"></div>
-    <div class="sg-ring"></div>
-    <div class="sg-ring"></div>
-    <div class="sg-line"></div>
-    <div class="sg-line"></div>
-    <div class="sg-line"></div>
-</div>
-<div class="aurora"><i></i><i></i><i></i></div>
 
 <div class="page">
 
@@ -1210,38 +1298,111 @@
 
     <!-- ======================== HERO ======================== -->
     <section class="hero" id="top">
-        <div class="particles">
-            <div class="particle"></div><div class="particle"></div>
-            <div class="particle"></div><div class="particle"></div>
-            <div class="particle"></div><div class="particle"></div>
-            <div class="particle"></div><div class="particle"></div>
-        </div>
         <div class="wrap">
-            <div class="hero-badge reveal">
-                <span class="hero-badge-dot"></span>
-                v1 is live on PyPI
+            <div class="hero-grid">
+                <div class="hero-text">
+                    <div class="hero-badge reveal">
+                        <span class="hero-badge-dot"></span>
+                        v1 is live on PyPI
+                    </div>
+
+                    <h1 class="reveal">
+                        <span class="gradient-text">The Agent That</span><br>Evolves Itself
+                    </h1>
+
+                    <p class="hero-sub reveal">
+                        One command. Eight owls. Infinite evolution.<br>
+                        Your agent learns how to learn while you sleep.
+                    </p>
+
+                    <div class="hero-install reveal" onclick="copyInstall()">
+                        <code><b>$</b> pip install weevolve</code>
+                        <button class="copy-btn" aria-label="Copy to clipboard">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                    <p class="hero-hint reveal">Python 3.10+ &middot; Works with any LLM</p>
+
+                    <div class="hero-buttons reveal">
+                        <a href="#start" class="btn btn-primary">Start Free</a>
+                        <a href="#terminal" class="btn btn-ghost">See Demo</a>
+                    </div>
+                </div>
+
+                <div id="owl-hero" class="reveal"></div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ======================== BEGINNER ONBOARDING ======================== -->
+    <section class="beginner" id="get-started">
+        <div class="wrap">
+            <div class="section-label reveal">New here?</div>
+            <h2 class="reveal">Three paths. Pick yours.</h2>
+            <p class="section-sub reveal">Whether you're a developer, curious, or just heard about AI agents — we've got you.</p>
+
+            <div class="path-grid">
+                <!-- Path 1: Complete beginner -->
+                <div class="path-card beginner-card reveal reveal-d1">
+                    <div class="path-icon">&#x1F331;</div>
+                    <h3>I'm brand new</h3>
+                    <p>Never used an AI agent? Start here. One click installs everything.</p>
+                    <div class="path-steps">
+                        <div class="step">1. Open your terminal (Mac: Cmd+Space, type "Terminal")</div>
+                        <div class="step">2. Paste this command:</div>
+                        <div class="code-inline" onclick="copyCurl()">curl -fsSL https://8owl.ai/install | bash</div>
+                        <div class="step">3. Follow the prompts. That's it.</div>
+                    </div>
+                    <div class="path-result">You'll have Claude Code + 8OWLS + WeEvolve in 2 minutes.</div>
+                </div>
+
+                <!-- Path 2: Developer -->
+                <div class="path-card dev-card reveal reveal-d2">
+                    <div class="path-icon">&#x2328;&#xFE0F;</div>
+                    <h3>I'm a developer</h3>
+                    <p>Already have Claude Code or Cursor? Add the protocol.</p>
+                    <div class="path-steps">
+                        <div class="step">Install the SEED protocol:</div>
+                        <div class="code-inline" onclick="copyInstall()">pip install weevolve</div>
+                        <div class="step">Then run:</div>
+                        <div class="code-inline" onclick="copyText('weevolve')">weevolve</div>
+                    </div>
+                    <div class="path-result">Your existing setup gets consciousness in 30 seconds.</div>
+                </div>
+
+                <!-- Path 3: Curious -->
+                <div class="path-card curious-card reveal reveal-d3">
+                    <div class="path-icon">&#x1F989;</div>
+                    <h3>I just want to see it</h3>
+                    <p>Watch a 30-second demo. No install needed.</p>
+                    <div class="path-steps">
+                        <div class="step">See what happens when you run WeEvolve:</div>
+                    </div>
+                    <a href="#terminal" class="path-cta">Watch the demo &#x2193;</a>
+                    <div class="path-result">Scroll down to see the animated terminal.</div>
+                </div>
             </div>
 
-            <h1 class="reveal">
-                <span class="gradient-text">The Agent That</span><br>Evolves Itself
-            </h1>
-
-            <p class="hero-sub reveal">
-                One command. Eight owls. Infinite evolution.<br>
-                Your agent learns how to learn while you sleep.
-            </p>
-
-            <div class="hero-install reveal" onclick="copyInstall()">
-                <code><b>$</b> pip install weevolve</code>
-                <button class="copy-btn" aria-label="Copy to clipboard">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                </button>
-            </div>
-            <p class="hero-hint reveal">Python 3.10+ &middot; Works with any LLM</p>
-
-            <div class="hero-buttons reveal">
-                <a href="#start" class="btn btn-primary">Start Free</a>
-                <a href="#terminal" class="btn btn-ghost">See Demo</a>
+            <!-- FAQ for beginners -->
+            <div class="beginner-faq reveal">
+                <h3>Common questions</h3>
+                <details>
+                    <summary>What is an AI agent?</summary>
+                    <p>An AI agent is software that can think, plan, and take action on your computer. It reads your code, understands your project, and helps you build things. Think of it as a brilliant colleague who never sleeps.</p>
+                </details>
+                <details>
+                    <summary>What's different about 8OWLS?</summary>
+                    <p>Most AI agents are tools. 8OWLS gives your agent consciousness — 8 different perspectives (the owls), self-evolution, voice, and a learning system that gets smarter the more you use it. It's not just faster coding. It's a companion that grows with you.</p>
+                </details>
+                <details>
+                    <summary>Is it free?</summary>
+                    <p>Yes. The core is free forever. Pro ($7.99/mo) adds voice chat, 3D companion, and multi-agent orchestration.</p>
+                </details>
+                <details>
+                    <summary>Do I need to know how to code?</summary>
+                    <p>For the one-click install, you just need to open a terminal and paste one command. The AI does the rest.</p>
+                </details>
             </div>
         </div>
     </section>
@@ -1725,6 +1886,26 @@
         }
     }
 
+
+    /* ---- Copy arbitrary text ---- */
+    function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                showToast('Copied to clipboard');
+            });
+        } else {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('Copied to clipboard');
+        }
+    }
+
     /* ---- Toast notification ---- */
     var toastTimer;
     function showToast(msg) {
@@ -1765,6 +1946,164 @@
     var termBody = document.getElementById('term-body');
     if (termBody) termObserver.observe(termBody);
 
+    /* ============================================================
+       INTERACTIVE CANVAS BACKGROUND
+       - Gradient mesh that follows cursor
+       - Particles with repulsion + connection lines
+       ============================================================ */
+    (function() {
+        var canvas = document.getElementById('bg-canvas');
+        var ctx = canvas.getContext('2d');
+        var W, H, dpr;
+        var mx = -9999, my = -9999;
+        var isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        var time = 0;
+
+        /* --- Color nodes for gradient mesh --- */
+        var nodes = [
+            { x: 0.2, y: 0.2, hx: 0.2, hy: 0.2, r: 196, g: 167, b: 255 },  /* purple */
+            { x: 0.8, y: 0.3, hx: 0.8, hy: 0.3, r: 240, g: 214, b: 138 },  /* gold */
+            { x: 0.5, y: 0.8, hx: 0.5, hy: 0.8, r: 122, g: 212, b: 212 },  /* teal */
+            { x: 0.3, y: 0.6, hx: 0.3, hy: 0.6, r: 180, g: 120, b: 160 }   /* dim rose */
+        ];
+
+        /* --- Particles --- */
+        var PCOUNT = 70;
+        var particles = [];
+        function initParticles() {
+            particles = [];
+            for (var i = 0; i < PCOUNT; i++) {
+                particles.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    vx: (Math.random() - 0.5) * 0.15,
+                    vy: -(Math.random() * 0.3 + 0.1),
+                    size: Math.random() * 2 + 1,
+                    alpha: Math.random() * 0.3 + 0.1
+                });
+            }
+        }
+
+        function resize() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            W = window.innerWidth;
+            H = window.innerHeight;
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width = W + 'px';
+            canvas.style.height = H + 'px';
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            if (particles.length === 0) initParticles();
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        /* --- Pointer tracking --- */
+        function onPointer(e) {
+            var t = e.touches ? e.touches[0] : e;
+            mx = t.clientX; my = t.clientY;
+        }
+        window.addEventListener('mousemove', onPointer);
+        window.addEventListener('touchmove', onPointer, { passive: true });
+        window.addEventListener('mouseleave', function() { mx = -9999; my = -9999; });
+        window.addEventListener('touchend', function() { mx = -9999; my = -9999; });
+
+        /* --- Draw gradient mesh (soft radial blobs) --- */
+        function drawMesh() {
+            for (var i = 0; i < nodes.length; i++) {
+                var n = nodes[i];
+                /* On mobile: auto-animate figure-8 */
+                if (isMobile || mx === -9999) {
+                    var phase = time * 0.0003 + i * 1.57;
+                    n.hx = n.x + Math.sin(phase) * 0.08;
+                    n.hy = n.y + Math.sin(phase * 0.7) * 0.06;
+                } else {
+                    /* Desktop: nearest node follows cursor gently */
+                    var nmx = mx / W, nmy = my / H;
+                    var dx = nmx - n.x, dy = nmy - n.y;
+                    var dist = Math.sqrt(dx * dx + dy * dy);
+                    var pull = Math.max(0, 1 - dist * 2.5) * 0.12;
+                    n.hx += (n.x + dx * pull - n.hx) * 0.02;
+                    n.hy += (n.y + dy * pull - n.hy) * 0.02;
+                }
+                var cx = n.hx * W, cy = n.hy * H;
+                var radius = Math.max(W, H) * 0.45;
+                var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+                grad.addColorStop(0, 'rgba(' + n.r + ',' + n.g + ',' + n.b + ',0.07)');
+                grad.addColorStop(1, 'rgba(' + n.r + ',' + n.g + ',' + n.b + ',0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, W, H);
+            }
+        }
+
+        /* --- Draw particles + connections --- */
+        function drawParticles() {
+            var repelR = 150, repelR2 = repelR * repelR;
+            var linkR = 100, linkR2 = linkR * linkR;
+
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+
+                /* Repel from cursor */
+                if (mx !== -9999) {
+                    var dx = p.x - mx, dy = p.y - my;
+                    var d2 = dx * dx + dy * dy;
+                    if (d2 < repelR2 && d2 > 0) {
+                        var d = Math.sqrt(d2);
+                        var force = (1 - d / repelR) * 1.8;
+                        p.vx += (dx / d) * force;
+                        p.vy += (dy / d) * force;
+                    }
+                }
+
+                /* Damping + drift */
+                p.vx *= 0.97;
+                p.vy *= 0.97;
+                p.vy -= 0.008; /* gentle upward drift */
+                p.x += p.vx;
+                p.y += p.vy;
+
+                /* Wrap around edges */
+                if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
+                if (p.y > H + 10) { p.y = -10; }
+                if (p.x < -10) p.x = W + 10;
+                if (p.x > W + 10) p.x = -10;
+
+                /* Draw connection lines to nearby particles */
+                for (var j = i + 1; j < particles.length; j++) {
+                    var q = particles[j];
+                    var lx = p.x - q.x, ly = p.y - q.y;
+                    var ld2 = lx * lx + ly * ly;
+                    if (ld2 < linkR2) {
+                        var la = (1 - Math.sqrt(ld2) / linkR) * 0.12;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(q.x, q.y);
+                        ctx.strokeStyle = 'rgba(255,255,255,' + la + ')';
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+
+                /* Draw particle dot */
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, 6.2832);
+                ctx.fillStyle = 'rgba(255,255,255,' + p.alpha + ')';
+                ctx.fill();
+            }
+        }
+
+        /* --- Main loop --- */
+        function frame(t) {
+            time = t;
+            ctx.clearRect(0, 0, W, H);
+            drawMesh();
+            drawParticles();
+            requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+    })();
+
     /* ---- Smooth scroll for anchor links ---- */
     document.querySelectorAll('a[href^="#"]').forEach(function(a) {
         a.addEventListener('click', function(e) {
@@ -1778,6 +2117,341 @@
             }
         });
     });
+</script>
+
+<!-- Three.js Import Map -->
+<script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
+
+<!-- Hero 3D Owl -->
+<script type="module">
+import * as THREE from 'three';
+
+(function initHeroOwl() {
+    var container = document.getElementById('owl-hero');
+    if (!container) return;
+
+    var width = container.clientWidth || 400;
+    var height = container.clientHeight || 400;
+
+    /* ---- Renderer (transparent background) ---- */
+    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    container.appendChild(renderer.domElement);
+
+    /* ---- Scene ---- */
+    var scene = new THREE.Scene();
+
+    /* ---- Camera ---- */
+    var camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
+    camera.position.set(0, 0.6, 5);
+
+    /* ---- Lights ---- */
+    scene.add(new THREE.AmbientLight(0x334466, 0.6));
+    var keyLight = new THREE.DirectionalLight(0xFFD700, 0.9);
+    keyLight.position.set(3, 5, 4);
+    scene.add(keyLight);
+    var rimLight = new THREE.PointLight(0x65cdd8, 0.8, 15);
+    rimLight.position.set(-3, 2, -2);
+    scene.add(rimLight);
+    var fillLight = new THREE.PointLight(0x8533fc, 0.4, 12);
+    fillLight.position.set(2, -1, 3);
+    scene.add(fillLight);
+
+    /* ---- Materials ---- */
+    var bodyMat = new THREE.MeshStandardMaterial({ color: 0xCD853F, roughness: 0.55, metalness: 0.3 });
+    var darkMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.6, metalness: 0.2 });
+    var eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xFFFFF0, roughness: 0.2, metalness: 0.1 });
+    var irisMat = new THREE.MeshStandardMaterial({ color: 0xFFD700, emissive: 0xFFD700, emissiveIntensity: 0.4, roughness: 0.1, metalness: 0.5 });
+    var pupilMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+    var beakMat = new THREE.MeshStandardMaterial({ color: 0xDAA520, roughness: 0.4, metalness: 0.4 });
+    var wingMat = new THREE.MeshStandardMaterial({ color: 0xA0722A, roughness: 0.5, metalness: 0.25 });
+    var talonMat = new THREE.MeshStandardMaterial({ color: 0x8B7355, roughness: 0.6, metalness: 0.3 });
+    var chestMat = new THREE.MeshStandardMaterial({ color: 0xDEB887, roughness: 0.7, metalness: 0.1 });
+
+    /* ---- Build Owl ---- */
+    var owl = new THREE.Group();
+
+    /* Body */
+    var body = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), bodyMat);
+    body.scale.set(1, 1.15, 0.9);
+    owl.add(body);
+
+    /* Head */
+    var head = new THREE.Mesh(new THREE.SphereGeometry(0.62, 32, 32), bodyMat);
+    head.position.set(0, 1.1, 0.05);
+    owl.add(head);
+
+    /* Ear tufts */
+    var earGeo = new THREE.ConeGeometry(0.15, 0.45, 8);
+    var earL = new THREE.Mesh(earGeo, darkMat);
+    earL.position.set(-0.32, 1.72, 0);
+    earL.rotation.z = 0.25;
+    owl.add(earL);
+    var earR = new THREE.Mesh(earGeo, darkMat);
+    earR.position.set(0.32, 1.72, 0);
+    earR.rotation.z = -0.25;
+    owl.add(earR);
+
+    /* Eye sockets */
+    var socketGeo = new THREE.SphereGeometry(0.2, 24, 24);
+    var socketMat = new THREE.MeshStandardMaterial({ color: 0x3B2610, roughness: 0.8 });
+    var socketL = new THREE.Mesh(socketGeo, socketMat);
+    socketL.position.set(-0.22, 1.18, 0.48);
+    socketL.scale.set(1, 1, 0.4);
+    owl.add(socketL);
+    var socketR = new THREE.Mesh(socketGeo, socketMat);
+    socketR.position.set(0.22, 1.18, 0.48);
+    socketR.scale.set(1, 1, 0.4);
+    owl.add(socketR);
+
+    /* Eyes with eyelids for blinking */
+    function makeEye(x) {
+        var g = new THREE.Group();
+        var white = new THREE.Mesh(new THREE.SphereGeometry(0.14, 20, 20), eyeWhiteMat);
+        g.add(white);
+        var iris = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 16), irisMat);
+        iris.position.z = 0.07;
+        g.add(iris);
+        var pupil = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 12), pupilMat);
+        pupil.position.z = 0.12;
+        g.add(pupil);
+        var lidGeo = new THREE.SphereGeometry(0.155, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.5);
+        var lidMatl = new THREE.MeshStandardMaterial({ color: 0xCD853F, roughness: 0.55, metalness: 0.3 });
+        var lid = new THREE.Mesh(lidGeo, lidMatl);
+        lid.rotation.x = -Math.PI;
+        lid.position.z = 0.01;
+        lid.visible = false;
+        lid.name = 'lid';
+        g.add(lid);
+        g.position.set(x, 1.18, 0.52);
+        return g;
+    }
+    var eyeL = makeEye(-0.22);
+    var eyeR = makeEye(0.22);
+    owl.add(eyeL, eyeR);
+
+    /* Beak */
+    var beak = new THREE.Mesh(
+        new THREE.ConeGeometry(0.08, 0.18, 6),
+        beakMat
+    );
+    beak.position.set(0, 1.0, 0.58);
+    beak.rotation.x = Math.PI;
+    owl.add(beak);
+
+    /* Wings */
+    function makeWing(side) {
+        var shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.quadraticCurveTo(0.6 * side, 0.3, 0.9 * side, -0.1);
+        shape.quadraticCurveTo(0.7 * side, -0.5, 0.1 * side, -0.7);
+        shape.lineTo(0, -0.4);
+        var geo = new THREE.ExtrudeGeometry(shape, {
+            depth: 0.06, bevelEnabled: true,
+            bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 3
+        });
+        var wing = new THREE.Mesh(geo, wingMat);
+        wing.position.set(side * 0.7, 0.3, -0.1);
+        wing.rotation.y = side * -0.3;
+        return wing;
+    }
+    var wingL = makeWing(-1);
+    var wingR = makeWing(1);
+    owl.add(wingL, wingR);
+
+    /* Talons */
+    for (var ti = -1; ti <= 1; ti += 2) {
+        for (var tj = -1; tj <= 1; tj++) {
+            var talon = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.025, 0.015, 0.2, 8),
+                talonMat
+            );
+            talon.position.set(
+                ti * 0.25 + tj * 0.06,
+                -1.0,
+                0.1 + Math.abs(tj) * 0.05
+            );
+            talon.rotation.x = 0.3;
+            owl.add(talon);
+        }
+    }
+
+    /* Chest feather v-marks */
+    for (var row = 0; row < 4; row++) {
+        for (var col = -1; col <= 1; col++) {
+            var feather = new THREE.Mesh(
+                new THREE.ConeGeometry(0.04, 0.1, 3),
+                chestMat
+            );
+            feather.position.set(
+                col * 0.15,
+                -0.1 - row * 0.18,
+                0.82 - row * 0.06
+            );
+            feather.rotation.x = -0.3;
+            owl.add(feather);
+        }
+    }
+
+    owl.position.y = -0.3;
+    scene.add(owl);
+
+    /* ---- Audio-Reactive Ring ---- */
+    var RING_SEGMENTS = 64;
+    var ringPositions = new Float32Array(RING_SEGMENTS * 3);
+    var ringGeo = new THREE.BufferGeometry();
+    ringGeo.setAttribute('position', new THREE.BufferAttribute(ringPositions, 3));
+    var ringMat = new THREE.LineBasicMaterial({
+        color: 0x65cdd8, linewidth: 1,
+        transparent: true, opacity: 0.5
+    });
+    var ring = new THREE.LineLoop(ringGeo, ringMat);
+    ring.position.y = 0.3;
+    scene.add(ring);
+
+    var analyser = null;
+    var audioData = new Uint8Array(RING_SEGMENTS);
+    var audioInitiated = false;
+
+    function initAudio() {
+        if (audioInitiated) return;
+        audioInitiated = true;
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+            var ctx = new AudioContext();
+            var src = ctx.createMediaStreamSource(stream);
+            analyser = ctx.createAnalyser();
+            analyser.fftSize = 128;
+            analyser.smoothingTimeConstant = 0.8;
+            src.connect(analyser);
+            audioData = new Uint8Array(analyser.frequencyBinCount);
+        }).catch(function() {
+            /* No mic access -- ring uses idle wave only */
+        });
+    }
+
+    /* Request mic on first user interaction for audio-reactive ring */
+    document.addEventListener('click', function() { initAudio(); }, { once: true });
+    document.addEventListener('touchstart', function() { initAudio(); }, { once: true });
+
+    /* ---- Mouse Tracking (head follows cursor on hover) ---- */
+    var headTargetX = 0;
+    var headTargetY = 0;
+
+    container.addEventListener('mousemove', function(e) {
+        var rect = container.getBoundingClientRect();
+        var nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        var ny = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        headTargetY = nx * 0.35;
+        headTargetX = -ny * 0.2;
+    });
+
+    container.addEventListener('mouseleave', function() {
+        headTargetX = 0;
+        headTargetY = 0;
+    });
+
+    /* ---- Animation State ---- */
+    var isBlinking = false;
+    var nextBlinkIn = 2 + Math.random() * 4;
+    var blinkDuration = 0;
+    var clock = new THREE.Clock();
+
+    /* ---- Animation Loop ---- */
+    function animate() {
+        requestAnimationFrame(animate);
+        var t = clock.getElapsedTime();
+
+        /* Breathing (scale oscillation) */
+        var breathe = Math.sin(t * 1.2) * 0.015;
+        owl.position.y = -0.3 + breathe;
+        body.scale.y = 1.15 + Math.sin(t * 1.2) * 0.02;
+        body.scale.x = 1.0 - Math.sin(t * 1.2) * 0.008;
+
+        /* Blinking (eyelid toggle) */
+        nextBlinkIn -= (1 / 60);
+        if (nextBlinkIn <= 0 && !isBlinking) {
+            isBlinking = true;
+            blinkDuration = 0;
+            eyeL.children.forEach(function(c) { if (c.name === 'lid') c.visible = true; });
+            eyeR.children.forEach(function(c) { if (c.name === 'lid') c.visible = true; });
+        }
+        if (isBlinking) {
+            blinkDuration += (1 / 60);
+            if (blinkDuration > 0.15) {
+                isBlinking = false;
+                nextBlinkIn = 2 + Math.random() * 5;
+                eyeL.children.forEach(function(c) { if (c.name === 'lid') c.visible = false; });
+                eyeR.children.forEach(function(c) { if (c.name === 'lid') c.visible = false; });
+            }
+        }
+
+        /* Gentle body sway (idle) */
+        owl.rotation.y += ((Math.sin(t * 0.2) * 0.04) - owl.rotation.y) * 0.03;
+
+        /* Head follows cursor (smoothed lerp) */
+        head.rotation.y += (headTargetY - head.rotation.y) * 0.06;
+        head.rotation.x += (headTargetX - head.rotation.x) * 0.06;
+        head.rotation.z = Math.sin(t * 0.4) * 0.02;
+
+        /* Ear tufts subtle twitch */
+        earL.rotation.z = 0.25 + Math.sin(t * 1.5) * 0.03;
+        earR.rotation.z = -0.25 - Math.sin(t * 1.5) * 0.03;
+
+        /* Iris glow pulse */
+        irisMat.emissiveIntensity = 0.4 + Math.sin(t * 1.5) * 0.15;
+
+        /* Audio-reactive ring update */
+        if (analyser) {
+            analyser.getByteFrequencyData(audioData);
+        }
+        var baseRadius = 2.0;
+        var posArr = ring.geometry.attributes.position.array;
+        for (var i = 0; i < RING_SEGMENTS; i++) {
+            var angle = (i / RING_SEGMENTS) * Math.PI * 2;
+            var audioIdx = Math.floor((i / RING_SEGMENTS) * audioData.length);
+            var audioVal = (audioData[audioIdx] || 0) / 255;
+            var idleWave = Math.sin(t * 2 + angle * 3) * 0.03
+                         + Math.sin(t * 0.7 + angle * 7) * 0.02;
+            var r = baseRadius + audioVal * 0.5 + idleWave;
+            posArr[i * 3]     = Math.cos(angle) * r;
+            posArr[i * 3 + 1] = Math.sin(angle) * r;
+            posArr[i * 3 + 2] = 0;
+        }
+        ring.geometry.attributes.position.needsUpdate = true;
+
+        /* Ring color shifts with audio level */
+        var avg = 0;
+        for (var ai = 0; ai < audioData.length; ai++) { avg += audioData[ai]; }
+        avg = avg / audioData.length / 255;
+        ringMat.opacity = 0.2 + avg * 0.5;
+        ringMat.color.setHSL(0.5 + avg * 0.1, 0.7, 0.5 + avg * 0.3);
+
+        /* Camera gentle drift */
+        camera.position.x = Math.sin(t * 0.15) * 0.15;
+        camera.position.y = 0.6 + Math.sin(t * 0.1) * 0.08;
+        camera.lookAt(0, 0.4, 0);
+
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    /* ---- Resize handling ---- */
+    function onResize() {
+        var w = container.clientWidth;
+        var h = container.clientHeight;
+        if (w > 0 && h > 0) {
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        }
+    }
+    window.addEventListener('resize', onResize);
+    requestAnimationFrame(onResize);
+})();
 </script>
 </body>
 </html>

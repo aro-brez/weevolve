@@ -1,13 +1,38 @@
+# Python
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.so
 *.egg-info/
 dist/
 build/
+.eggs/
+
+# Virtual environment
 .venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+
+# State/Runtime (user-specific)
+weevolve.db
+weevolve_state.json
+*.db-journal
+
+# Secrets
+credentials.json
 .env
-*.db
-!data/genesis-curated.db
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test/Cache
 .pytest_cache/
 .coverage
 htmlcov/

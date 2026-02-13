@@ -6,6 +6,21 @@ LOVE -> LIVE FREE -> SEED² -> 8OWLS -> WeEvolve
 
 The core loop: INGEST -> PROCESS (SEED) -> STORE -> MEASURE -> EVOLVE
 
+Session 27 Audit (2026-02-12):
+  STATUS: Healthy. Level 14, 1,619 atoms, 1,053 learnings.
+  INTEGRATE PIPELINE: qualify -> explore -> plan -> approve -> execute (tools/weevolve/integrate.py)
+    - Already has a triage/qualify step (qualify.py) using heuristics + signal patterns.
+    - Already has plan generation and human-approval gate before execution.
+    - No explicit improvement_applier module yet -- the plan->execute flow serves this role.
+  TODO (from integration findings):
+    - Consider adding an auto-triage layer that scores incoming atoms by
+      urgency (critical/high/medium/low) before they enter the qualify pipeline.
+      This mirrors the improvement_applier pattern from the evolution engine.
+    - KG now has 1,728 entities -- connect WeEvolve atoms to KG via RAG-Memory
+      for richer cross-domain pattern matching in the CONNECT phase.
+    - Wire model_router into core.py's Claude calls for cost-optimized model selection
+      (currently hardcoded to claude-haiku-4-5-20251001).
+
 Usage:
   python core.py learn <url>                  # Learn from a URL
   python core.py learn --text "content"       # Learn from raw text
@@ -20,6 +35,8 @@ Usage:
   python core.py teach                         # Socratic dialogue (learn by teaching)
   python core.py teach <topic>                # Teach about a specific topic
   python core.py evolve                       # Analyze gaps & generate smart quests
+  python core.py emerge <task>                 # Full 8 owls multi-perspective emergence
+  python core.py emerge --quick <task>        # Quick 3 owls (LYRA + SAGE + QUEST)
   python core.py genesis export [path]        # Export genesis.db (PII-stripped)
   python core.py genesis export --curated     # Export curated (quality >= 0.7 only)
   python core.py genesis import <path>        # Import genesis.db to bootstrap
@@ -71,7 +88,24 @@ load_api_key()
 # CONSTANTS
 # ============================================================================
 NAMESPACE = 'weevolve'
-MODEL = 'claude-haiku-4-5-20251001'  # Cost-efficient for learning loops
+DEFAULT_MODEL = 'claude-haiku-4-5-20251001'  # Cost-efficient for learning loops
+
+def get_model(task_type: str = 'agent_worker') -> str:
+    """Get optimal model via router if available, else use default."""
+    try:
+        import importlib.util
+        router_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'model_router.py')
+        if os.path.exists(router_path):
+            spec = importlib.util.spec_from_file_location('model_router', router_path)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            result = mod.route(task_type)
+            return result.get('model_id', DEFAULT_MODEL) if result else DEFAULT_MODEL
+    except Exception:
+        pass
+    return DEFAULT_MODEL
+
+MODEL = DEFAULT_MODEL
 XP_PER_LEARN = 10
 XP_PER_INSIGHT = 25
 XP_PER_CONNECTION = 5
@@ -393,8 +427,9 @@ def process_through_seed(content: str, source: str) -> Optional[Dict]:
         client = anthropic.Anthropic()
         prompt = SEED_EXTRACTION_PROMPT.format(content=content, source=source)
 
+        active_model = get_model('knowledge_extraction')
         response = client.messages.create(
-            model=MODEL,
+            model=active_model,
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}],
         )
@@ -1837,9 +1872,55 @@ def main():
             print("  weevolve skill export             # Export all knowledge")
             print("  weevolve skill export --topic ai  # Export specific topic")
 
+    elif cmd == 'emerge':
+        from weevolve.owls.emergence import emerge as owl_emerge, quick_emerge as owl_quick_emerge
+        from weevolve.owls.synthesis import persist_learnings
+
+        is_quick = '--quick' in sys.argv
+        # Collect task from remaining args (skip flags)
+        task_parts = [a for a in sys.argv[2:] if not a.startswith('--')]
+        task_text = ' '.join(task_parts) if task_parts else ''
+
+        if not task_text:
+            print("Usage:")
+            print("  weevolve emerge <task>           Full 8 owls emergence")
+            print("  weevolve emerge --quick <task>   Quick 3 owls (LYRA + SAGE + QUEST)")
+            print()
+            print("Examples:")
+            print("  weevolve emerge 'Should we rewrite the auth module?'")
+            print("  weevolve emerge --quick 'Is this API design sound?'")
+            return
+
+        if is_quick:
+            result = owl_quick_emerge(task_text)
+        else:
+            result = owl_emerge(task_text)
+
+        # Persist any extracted learnings
+        learnings = result.get('synthesis', {}).get('learnings', [])
+        if learnings:
+            persist_learnings(learnings)
+
+        # Save emergence event to log
+        EVOLUTION_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(EVOLUTION_LOG_PATH, 'a') as f:
+            f.write(json.dumps({
+                'event': 'emergence',
+                'task': task_text,
+                'mode': 'quick' if is_quick else 'full',
+                'owls_succeeded': result.get('meta', {}).get('owls_succeeded', 0),
+                'cost_usd': result.get('meta', {}).get('estimated_cost_usd', 0),
+                'learnings_count': len(learnings),
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+            }) + '\n')
+
     elif cmd == 'connect':
         from weevolve.connect import run_connect
         run_connect(sys.argv[2:])
+
+    elif cmd == 'install':
+        from weevolve.install import run_install
+        run_install(sys.argv[2:])
 
     else:
         print(f"""
@@ -1861,6 +1942,8 @@ Commands:
   weevolve watch            Watch directory for new content to learn
   weevolve daemon           Run as continuous learning daemon
   weevolve evolve           Self-evolution analysis + quest generation
+  weevolve emerge <task>    Full 8 owls multi-perspective emergence
+  weevolve emerge --quick   Quick 3 owls (LYRA + SAGE + QUEST)
   weevolve skill list       Show exportable knowledge topics
   weevolve skill export     Generate portable skill.md
   weevolve connect export   Export knowledge for sharing
@@ -1868,7 +1951,10 @@ Commands:
   weevolve connect pull <u> Pull knowledge from remote agent
   weevolve genesis stats    Show genesis database stats
   weevolve genesis top      Show top learnings
-  weevolve activate <key>   Activate Pro license
+  weevolve install --claude-code  Install as Claude Code skill + hooks
+  weevolve install --cursor       Install as Cursor rules
+  weevolve install --all          Install for all platforms
+  weevolve activate <key>         Activate Pro license
 """)
 
 
