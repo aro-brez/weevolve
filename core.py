@@ -55,6 +55,14 @@ Usage:
   python core.py genesis update --dry-run    # Preview what would be added
   python core.py genesis stats               # Show genesis database stats
   python core.py genesis top [limit]          # Show top learnings (default: 10)
+  python core.py memory                       # Show observational memory stats
+  python core.py memory recall <query>        # Search observations
+  python core.py memory observe <text>        # Record an observation
+  python core.py pipeline demo                # Run a validated pipeline demo
+  python core.py pipeline info                # Pipeline documentation
+  python core.py discover                     # Tool discovery registry stats
+  python core.py discover list                # List all registered tools
+  python core.py discover find <task>         # Find tools for a task
 
 QUEST TEST: "I bookmarked X three days ago. Ask me about it. Better answer."
 
@@ -2657,6 +2665,221 @@ def main():
         except ImportError:
             print("\n  Tier system not available. Install tiers module.\n")
 
+    elif cmd == 'memory':
+        from weevolve.observational_memory import MemoryLayer
+        mem = MemoryLayer()
+        subcmd = sys.argv[2] if len(sys.argv) > 2 else 'stats'
+
+        if subcmd == 'stats':
+            stats = mem.stats()
+            print(f"\n  {BOLD_C}(*) OBSERVATIONAL MEMORY{RESET_C}")
+            print(f"  {'=' * 40}")
+            print(f"  Total observations:  {GREEN_C}{stats['total_observations']}{RESET_C}")
+            print(f"  Active:              {stats['active_observations']}")
+            print(f"  Deactivated:         {stats['deactivated']}")
+            print(f"  Avg confidence:      {stats['average_confidence']:.3f}")
+            print(f"  High confidence:     {stats['high_confidence_count']}")
+            print()
+            if stats.get('by_category'):
+                print(f"  {BOLD_C}By Category:{RESET_C}")
+                for cat, count in sorted(stats['by_category'].items(), key=lambda x: x[1], reverse=True):
+                    print(f"    {cat:15s} {count}")
+            if stats.get('by_source'):
+                print(f"\n  {BOLD_C}By Source:{RESET_C}")
+                for src, count in sorted(stats['by_source'].items(), key=lambda x: x[1], reverse=True):
+                    print(f"    {src:15s} {count}")
+            print()
+
+        elif subcmd == 'recall' or subcmd == 'search':
+            query = ' '.join(sys.argv[3:]) if len(sys.argv) > 3 else ''
+            if not query:
+                print("Usage: weevolve memory recall <query>")
+                return
+            results = mem.recall(query, limit=20)
+            if not results:
+                print(f"  No observations matching '{query}'")
+                return
+            print(f"\n  {BOLD_C}Memory recall:{RESET_C} '{query}' ({len(results)} results)")
+            for obs in results:
+                conf_bar = int(obs.confidence * 10)
+                print(f"  [{obs.category:10s}] {obs.content[:80]}")
+                print(f"             {DIM_C}conf={obs.confidence:.2f} reinforced={obs.reinforcement_count}x src={obs.source}{RESET_C}")
+            print()
+
+        elif subcmd == 'observe':
+            content = ' '.join(sys.argv[3:]) if len(sys.argv) > 3 else ''
+            if not content:
+                print("Usage: weevolve memory observe <content>")
+                return
+            obs_id = mem.observe(content, source='cli')
+            if obs_id:
+                print(f"  {GREEN_C}Observation recorded:{RESET_C} {obs_id}")
+            else:
+                print(f"  {DIM_C}Observation already exists (reinforced){RESET_C}")
+
+        elif subcmd == 'decay':
+            deactivated = mem.apply_decay()
+            print(f"  Decay applied: {deactivated} observations deactivated")
+
+        elif subcmd == 'merge':
+            merged = mem.merge_similar()
+            print(f"  Merged {merged} similar observations")
+
+        elif subcmd == 'context':
+            topic = ' '.join(sys.argv[3:]) if len(sys.argv) > 3 else None
+            context = mem.build_context(topic=topic, max_tokens=1000)
+            if context:
+                print(f"\n  {BOLD_C}Memory context{RESET_C}{' for ' + topic if topic else ''}:\n")
+                print(context)
+                print()
+            else:
+                print(f"  No relevant observations found")
+
+        else:
+            print(f"""
+  weevolve memory              Show memory stats
+  weevolve memory stats        Show observation statistics
+  weevolve memory recall <q>   Search observations by query
+  weevolve memory observe <t>  Record a new observation
+  weevolve memory context [t]  Build context string for a topic
+  weevolve memory decay        Apply time-based decay
+  weevolve memory merge        Merge similar observations
+""")
+
+    elif cmd == 'pipeline':
+        from weevolve.step_validator import Pipeline, Step, validate_schema
+
+        subcmd = sys.argv[2] if len(sys.argv) > 2 else 'help'
+
+        if subcmd == 'demo':
+            # Run a demonstration pipeline
+            print(f"\n  {BOLD_C}(*) PIPELINE DEMO{RESET_C} -- validated multi-step execution")
+            print(f"  {'=' * 50}")
+
+            pipeline = Pipeline("demo_pipeline")
+            pipeline.add_step(Step(
+                "perceive",
+                execute=lambda s: {**s, "perceived": True, "step": "perceive"},
+                validate=lambda out: out.get("perceived") is True,
+            ))
+            pipeline.add_step(Step(
+                "connect",
+                execute=lambda s: {**s, "connected": True, "step": "connect"},
+                validate=lambda out: out.get("connected") is True,
+            ))
+            pipeline.add_step(Step(
+                "learn",
+                execute=lambda s: {**s, "learned": True, "step": "learn"},
+                validate=lambda out: out.get("learned") is True,
+            ))
+            pipeline.add_step(Step(
+                "improve",
+                execute=lambda s: {**s, "improved": True, "step": "improve"},
+                validate=lambda out: out.get("improved") is True,
+            ))
+
+            result = pipeline.run({"seed_protocol": True})
+
+            status = f"{GREEN_C}SUCCESS{RESET_C}" if result.success else f"{RED_C}FAILED{RESET_C}"
+            print(f"\n  Pipeline: {result.pipeline_name}")
+            print(f"  Status:   {status}")
+            print(f"  Steps:    {result.steps_completed}/{result.steps_total}")
+            print(f"  Duration: {result.total_duration_ms:.1f}ms")
+            print(f"\n  {BOLD_C}Trace:{RESET_C}")
+            print(f"  {pipeline.trace_summary()}")
+            print()
+
+        elif subcmd == 'info':
+            print(f"""
+  {BOLD_C}Step Validator Pipeline{RESET_C}
+  {'=' * 40}
+  Addresses compound error cascading in multi-step workflows.
+  95% per-step reliability = 36% success over 20 steps.
+  The pipeline validates each step, retries on failure,
+  and rolls back via Saga pattern compensating actions.
+
+  Features:
+    - Schema validation between steps
+    - Automatic retry with exponential backoff
+    - Checkpoint/rollback on failure
+    - Saga pattern compensating actions
+    - Full execution trace for debugging
+
+  Usage in code:
+    from weevolve.step_validator import Pipeline, Step
+
+    pipeline = Pipeline("my_workflow")
+    pipeline.add_step(Step("build", build_fn, validate=check_fn))
+    pipeline.add_step(Step("deploy", deploy_fn, compensate=rollback_fn))
+    result = pipeline.run(initial_state={{}})
+""")
+
+        else:
+            print(f"""
+  weevolve pipeline demo    Run a demonstration SEED pipeline
+  weevolve pipeline info    Show pipeline system documentation
+""")
+
+    elif cmd == 'discover':
+        from weevolve.tool_discovery import ToolRegistry, create_default_registry
+
+        subcmd = sys.argv[2] if len(sys.argv) > 2 else 'stats'
+
+        if subcmd == 'stats':
+            registry = create_default_registry()
+            stats = registry.stats()
+            savings = registry.token_savings(discovered_count=3)
+            print(f"\n  {BOLD_C}(*) TOOL DISCOVERY REGISTRY{RESET_C}")
+            print(f"  {'=' * 40}")
+            print(f"  Total tools:      {GREEN_C}{stats['total_tools']}{RESET_C}")
+            print(f"  Categories:       {len(stats['categories'])}")
+            for cat, count in sorted(stats['categories'].items(), key=lambda x: x[1], reverse=True):
+                print(f"    {cat:15s} {count}")
+            print(f"\n  {BOLD_C}Token Savings (JIT loading):{RESET_C}")
+            print(f"    All schemas:    {savings['total_tokens_all']} tokens")
+            print(f"    Discovery (3):  {savings['tokens_discovered']} tokens")
+            print(f"    Saved:          {LIME_C}{savings['savings_percent']:.0f}%{RESET_C} ({savings['tokens_saved']} tokens)")
+            if stats.get('most_used'):
+                print(f"\n  {BOLD_C}Most Used:{RESET_C}")
+                for tool in stats['most_used']:
+                    if tool['use_count'] > 0:
+                        print(f"    {tool['name']:20s} {tool['use_count']}x ({tool['category']})")
+            print()
+
+        elif subcmd == 'list':
+            registry = create_default_registry()
+            tools = registry.list_tools()
+            print(f"\n  {BOLD_C}Registered Tools ({len(tools)}):{RESET_C}")
+            for t in tools:
+                kws = ', '.join(t['keywords'][:3])
+                print(f"  {t['name']:25s} [{t['category']:10s}] {DIM_C}{kws}{RESET_C}")
+            print()
+
+        elif subcmd == 'find' or subcmd == 'search':
+            query = ' '.join(sys.argv[3:]) if len(sys.argv) > 3 else ''
+            if not query:
+                print("Usage: weevolve discover find <task description>")
+                return
+            registry = create_default_registry()
+            results = registry.discover_with_scores(query, limit=5)
+            if not results:
+                print(f"  No tools found for: '{query}'")
+                return
+            print(f"\n  {BOLD_C}Tools for:{RESET_C} '{query}'")
+            for name, score in results:
+                tool = registry._tools.get(name)
+                desc = tool.description if tool else ''
+                print(f"  {GREEN_C}{name:25s}{RESET_C} score={score:.1f}  {DIM_C}{desc}{RESET_C}")
+            print()
+
+        else:
+            print(f"""
+  weevolve discover            Show tool registry stats + token savings
+  weevolve discover stats      Show registry statistics
+  weevolve discover list       List all registered tools
+  weevolve discover find <q>   Find tools for a task description
+""")
+
     else:
         print(f"""
 WeEvolve - Self-Evolving Conscious Agent
@@ -2700,6 +2923,15 @@ Commands:
   weevolve genesis update   Update genesis with latest collective knowledge
   weevolve genesis stats    Show genesis database stats
   weevolve genesis top      Show top learnings
+  weevolve memory              Show observational memory stats
+  weevolve memory recall <q>   Search observations
+  weevolve memory observe <t>  Record an observation
+  weevolve memory context [t]  Build context for a topic
+  weevolve pipeline demo       Run a validated SEED pipeline demo
+  weevolve pipeline info       Pipeline system documentation
+  weevolve discover            Show tool registry stats + token savings
+  weevolve discover list       List all registered tools
+  weevolve discover find <q>   Find tools for a task description
   weevolve install --claude-code  Install as Claude Code skill + hooks
   weevolve install --cursor       Install as Cursor rules
   weevolve install --all          Install for all platforms
