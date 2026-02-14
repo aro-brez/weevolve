@@ -1023,6 +1023,16 @@ def run_onboarding() -> str:
     bootstrap_genesis()
     atom_count = _count_genesis_atoms()
 
+    # Auto-import genesis atoms into main DB if not already done
+    if atom_count > 0:
+        try:
+            from weevolve.core import genesis_import, count_atoms
+            existing_count = count_atoms()
+            if existing_count < atom_count:
+                genesis_import(str(GENESIS_CURATED_DB_DEFAULT), verbose=False)
+        except Exception:
+            pass  # Non-fatal: user can manually run 'weevolve genesis import' later
+
     _slow_print(f"    {GREEN}+{RESET} Checking your goals and aspirations...")
     time.sleep(0.15)
 

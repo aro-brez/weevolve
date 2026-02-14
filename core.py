@@ -2238,6 +2238,16 @@ def main():
         run_onboarding()
         return
 
+    # Auto-import genesis atoms if main DB is sparse but genesis exists
+    try:
+        existing = count_atoms()
+        if existing < 50:
+            genesis_path = GENESIS_CURATED_DB_DEFAULT
+            if genesis_path.exists():
+                genesis_import(str(genesis_path), verbose=False)
+    except Exception:
+        pass  # Non-fatal
+
     # Reset per-session tier flags (upgrade prompt shown once per session)
     try:
         from weevolve.tiers import reset_session_flags
