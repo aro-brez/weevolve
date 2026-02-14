@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=68.0,<78.0", "wheel"]
+requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "weevolve"
-version = "0.1.0"
+version = "0.2.0"
 description = "The protocol that teaches agents to learn how to learn. SEED protocol for self-evolving agents."
 readme = "README.md"
 license = {text = "BSL-1.1"}
@@ -35,6 +35,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Education",
@@ -51,14 +52,22 @@ dependencies = [
 ai = ["anthropic>=0.20.0"]
 voice = ["elevenlabs>=1.0.0"]
 chat = ["elevenlabs>=1.0.0", "websockets>=12.0", "pyaudio>=0.2.14"]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1.0",
+]
 all = [
     "anthropic>=0.20.0",
     "elevenlabs>=1.0.0",
     "websockets>=12.0",
+    "pyaudio>=0.2.14",
 ]
 
 [project.scripts]
 weevolve = "weevolve.core:main"
+weevolve-voice = "weevolve.conversational:start_conversation"
+weevolve-router = "weevolve.model_router:main"
 
 [project.urls]
 Homepage = "https://weevolve.ai"
@@ -80,13 +89,23 @@ weevolve = "."
 weevolve = [
     "data/*.db",
     "companion/*.html",
+    "companion/*.json",
     "site/*.html",
     "site/*.json",
     "site/*.js",
     "skills/**/*.md",
     "skills/**/*.sh",
     "SKILL.md",
+    "LICENSE",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
