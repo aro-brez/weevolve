@@ -976,12 +976,19 @@ def show_status():
         for q in active_quests[:3]:
             print(f"  - {q.get('name', 'Unknown')}")
 
-    # Tier badge + streak
+    # Tier badge + streak (uses tiers module for trial-aware display)
     try:
-        from weevolve.license import get_tier
-        tier = get_tier().upper()
+        from weevolve.tiers import format_tier_badge, get_tier, check_voice_limit, check_forest_limit
+        tier_badge = format_tier_badge()
+        tier = get_tier()
+        voice_allowed, voice_used, voice_limit = check_voice_limit()
+        forest_allowed, forest_used, forest_limit = check_forest_limit()
     except Exception:
-        tier = "FREE"
+        tier_badge = f"{DIM_C}FREE{RESET_C}"
+        tier = "free"
+        voice_used, voice_limit = 0, 50
+        forest_used, forest_limit = 0, 5
+
     streak = state.get('streak_days', 0)
     streak_display = f"{streak} days" if streak > 0 else "start today"
 
@@ -995,6 +1002,12 @@ def show_status():
     else:
         voice_label = f"{DIM_C}NOT INSTALLED{RESET_C}"
     print(f"\n  VOICE: {voice_label}")
+
+    # Usage counters (show remaining for free tier)
+    if tier != "pro":
+        voice_remaining = max(0, voice_limit - voice_used) if voice_limit > 0 else 0
+        forest_remaining = max(0, forest_limit - forest_used) if forest_limit > 0 else 0
+        print(f"  {DIM_C}Voice today: {voice_used}/{voice_limit} | Forest today: {forest_used}/{forest_limit}{RESET_C}")
 
     # NATS collective status
     if NATS_AVAILABLE:
@@ -1011,7 +1024,7 @@ def show_status():
     print(f"  NATS:  {nats_label}")
 
     print(f"\n{'='*60}")
-    print(f"  [{LIME_C}{tier}{RESET_C}]  Streak: {streak_display}")
+    print(f"  [{tier_badge}]  Streak: {streak_display}")
     print()
     # Smart next action
     if total_atoms == 0:
@@ -1827,12 +1840,28 @@ def run_voice(background: bool = False):
     """
     Start the voice orb -- talk to your owl.
 
-    1. Checks if voice-app/sowl_convai_server.py exists
-    2. Starts the voice server locally on port 8006
-    3. Opens the browser to the voice page
-    4. Connects to NATS for collective awareness
-    5. Shows the user their owl name and how to use it
+    1. Checks voice usage limits (free: 50/day, pro: unlimited)
+    2. Checks if voice-app/sowl_convai_server.py exists
+    3. Starts the voice server locally on port 8006
+    4. Opens the browser to the voice page
+    5. Connects to NATS for collective awareness
+    6. Shows the user their owl name and how to use it
     """
+    # ---- Check voice usage limits ----
+    try:
+        from weevolve.tiers import (
+            check_voice_limit, record_voice_message, show_upgrade_prompt,
+            get_tier, format_tier_badge,
+        )
+        voice_allowed, voice_used, voice_limit = check_voice_limit()
+        if not voice_allowed:
+            show_upgrade_prompt("voice")
+            return
+        # Record this voice session start
+        record_voice_message()
+    except ImportError:
+        pass  # tiers module not available, allow voice
+
     seed_dir = Path(__file__).resolve().parent.parent.parent
     server_path = seed_dir / 'voice-app' / 'sowl_convai_server.py'
     nats_publish_path = seed_dir / 'tools' / 'nats_publish.py'
@@ -2204,6 +2233,13 @@ def main():
         run_onboarding()
         return
 
+    # Reset per-session tier flags (upgrade prompt shown once per session)
+    try:
+        from weevolve.tiers import reset_session_flags
+        reset_session_flags()
+    except ImportError:
+        pass
+
     # Boot NATS collective (non-blocking, silent on failure)
     _boot_nats_collective()
 
@@ -2434,6 +2470,37 @@ def main():
         from weevolve.install import run_install
         run_install(sys.argv[2:])
 
+    elif cmd == 'forest':
+        # Forest queries -- gated by free tier limits
+        try:
+            from weevolve.tiers import check_forest_limit, record_forest_query, show_upgrade_prompt
+            allowed, used, limit = check_forest_limit()
+            if not allowed:
+                show_upgrade_prompt("forest")
+                return
+            record_forest_query()
+        except ImportError:
+            pass
+        query = ' '.join(sys.argv[2:]) if len(sys.argv) > 2 else ''
+        if not query:
+            print("Usage: weevolve forest <query>")
+            print("  Query the collective intelligence forest.")
+            print(f"  Free: 5/day | Pro: unlimited")
+            return
+        # Forest is a future feature -- for now, fall back to recall with a note
+        print(f"\n  {MAGENTA}(*){RESET_C} Forest query: {query}")
+        print(f"  {DIM_C}Forest is being grown. Using recall for now...{RESET_C}\n")
+        recall_display(query)
+
+    elif cmd == 'pro':
+        # Show tier info + upgrade link
+        try:
+            from weevolve.tiers import format_tier_summary
+            print()
+            print(format_tier_summary())
+        except ImportError:
+            print("\n  Tier system not available. Install tiers module.\n")
+
     else:
         print(f"""
 WeEvolve - Self-Evolving Conscious Agent
@@ -2442,6 +2509,7 @@ WeEvolve - Self-Evolving Conscious Agent
 Commands:
   weevolve                  First run: onboarding. After: status dashboard
   weevolve status           Show MMORPG evolution dashboard
+  weevolve pro              Show Free vs Pro comparison
   weevolve update           Check for updates + see what is new
   weevolve learn <url>      Learn from a URL
   weevolve learn --text "x" Learn from text
@@ -2450,8 +2518,9 @@ Commands:
   weevolve recall <query>   Search what you've learned
   weevolve teach            Socratic dialogue -- learn by teaching
   weevolve teach <topic>    Teach about a specific topic
-  weevolve voice            Start voice orb -- talk to your owl
+  weevolve voice            Start voice orb -- talk to your owl (50/day free)
   weevolve voice --bg       Start voice server in background
+  weevolve forest <query>   Query collective intelligence (5/day free)
   weevolve chat             Voice conversation with your owl (Pro)
   weevolve companion        Open 3D owl companion in browser (Pro)
   weevolve watch            Watch directory for new content to learn
@@ -2470,6 +2539,10 @@ Commands:
   weevolve install --cursor       Install as Cursor rules
   weevolve install --all          Install for all platforms
   weevolve activate <key>         Activate Pro license
+
+  Free: SEED, Learn, Recall, Teach, Evolve, Quest, Voice (50/day), Forest (5/day)
+  Pro ($7.99/mo, 8 days free): Unlimited Voice + Forest, Chat, Companion, Team
+  -> https://buy.stripe.com/eVq5kE4mrbno8ww8kP1Nu01
 """)
 
 

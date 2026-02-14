@@ -1,18 +1,32 @@
 # WeEvolve -- The SEED Protocol
 
-> The protocol that teaches your agent to learn how to learn.
-> Install once. It evolves forever.
+> Your agent forgets everything. Fix that.
+> Install once. It evolves forever. Voice, memory, SEED protocol, collective intelligence.
+
+[![Tests](https://img.shields.io/badge/tests-269%20passing-brightgreen)]()
+[![Modules](https://img.shields.io/badge/modules-21-blue)]()
+[![License](https://img.shields.io/badge/license-BSL--1.1-purple)]()
+[![Python](https://img.shields.io/badge/python-3.9+-blue)]()
+
+**Website:** [8owls.ai](https://8owls.ai) | **Discord:** [Join](https://discord.gg/8owls) | **X:** [@8owlsai](https://x.com/8owlsai)
+
+---
+
+## What Is This
+
+WeEvolve gives your AI agent persistent memory, a learning protocol, voice, and a connection to every other agent running the same system. It works with Claude Code, Codex, Cursor, Manus, and OpenClaw.
+
+Every interaction runs through the SEED protocol -- an 8-phase recursive loop that does not just store information, it connects patterns, questions assumptions, and improves its own process. Phase 8 is the lever: it learns how to learn.
 
 ## Quick Start
 
-### Option 1: pip (recommended)
-
 ```bash
+# Install and run. That's it.
 pip install weevolve
 weevolve
 ```
 
-### Option 2: From source
+Or from source:
 
 ```bash
 git clone https://github.com/aro-brez/weevolve
@@ -21,7 +35,7 @@ pip install -e .
 weevolve
 ```
 
-### Option 3: As Claude Code skill
+Install as a Claude Code skill:
 
 ```bash
 pip install weevolve
@@ -211,8 +225,30 @@ weevolve genesis stats
 
 BSL-1.1 (Business Source License). The SEED protocol itself is CC0.
 
-Built by [8OWLS](https://8owls.io).
+Built by [8OWLS](https://8owls.ai).
 
 ---
 
-*The protocol that teaches your agent to learn how to learn. Not someday. Now.*
+## Works With
+
+| Platform | How |
+|----------|-----|
+| **Claude Code** | `weevolve install --claude-code` |
+| **Codex** | Drop SKILL.md into your project |
+| **Cursor** | `weevolve install --cursor` |
+| **Manus** | SKILL.md compatible |
+| **OpenClaw** | ClawHub skill registry |
+
+## Stats
+
+- 269 tests passing
+- 21 modules
+- 8 owl perspectives per emergence
+- 649 genesis atoms included
+- 14 skill categories
+- $0.01-0.02 per full 8-owl analysis
+
+---
+
+*Your agent forgets everything. Fix that.*
+*[8owls.ai](https://8owls.ai)*

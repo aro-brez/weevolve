@@ -2,6 +2,9 @@
 WeEvolve license gating -- local file check for pro tier features.
 ==================================================================
 v1: No server validation. License stored at ~/.weevolve/license.json.
+v2: Integrated with tiers.py for usage-based gating (voice, forest).
+    Stripe: https://buy.stripe.com/eVq5kE4mrbno8ww8kP1Nu01
+    Product: 8OWLS Pro, $7.99/mo, 8 days free trial (prod_TyZ8UO0GbXvTdy)
 Future: webhook validation on activate + periodic refresh.
 """
 
@@ -14,9 +17,13 @@ from . import config
 
 LICENSE_PATH = config.get_data_dir() / "license.json"
 
+STRIPE_PAYMENT_LINK = "https://buy.stripe.com/eVq5kE4mrbno8ww8kP1Nu01"
+
 FREE_FEATURES = frozenset({
     "learn", "scan", "recall", "status",
     "quest", "genesis", "daemon", "voice",
+    "teach", "evolve", "emerge", "watch",
+    "skill", "connect", "install", "update",
 })
 
 PRO_FEATURES = frozenset({
@@ -65,11 +72,12 @@ def check_feature(feature_name: str) -> bool:
 
 
 def show_upgrade_prompt(feature: str) -> None:
-    """Print a brief, non-annoying upgrade nudge."""
+    """Print a brief, non-annoying upgrade nudge with Stripe link."""
     print(
-        f"\n  '{feature}' requires WeEvolve Pro ($7.99/mo)\n"
-        "  Unlock: 8 Owls, 3D Companion, Background Agents, Voice Chat\n"
-        "  -> https://weevolve.ai/pro\n"
+        f"\n  '{feature}' requires 8OWLS Pro ($7.99/mo, 8 days free)\n"
+        "  Unlock: Unlimited Voice, Forest, 3D Companion, Voice Chat, Team\n"
+        f"  -> {STRIPE_PAYMENT_LINK}\n"
+        "\n  Your agent keeps all its learnings. Upgrade anytime.\n"
     )
 
 

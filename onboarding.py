@@ -86,12 +86,14 @@ FEATURES = [
     ("weevolve connect export", "Export knowledge for agent-to-agent sharing", "free", False),
     ("weevolve connect serve", "Start knowledge sharing server", "free", False),
     ("weevolve connect pull <url>", "Pull knowledge from a remote agent", "free", False),
-    ("weevolve voice", "Voice companion -- talk to your owl (bidirectional sync)", "free", False),
+    ("weevolve voice", "Voice companion -- talk to your owl (50/day free)", "free", False),
+    ("weevolve forest <query>", "Collective intelligence queries (5/day free)", "free", False),
+    ("weevolve pro", "Show Free vs Pro comparison", "free", False),
     ("weevolve update", "Check for updates and see what is new", "free", False),
     ("weevolve install --claude-code", "Install as Claude Code skill + hooks", "free", False),
     ("weevolve install --cursor", "Install as Cursor rules", "free", False),
     ("weevolve install --all", "Install for all detected platforms", "free", False),
-    ("weevolve chat", "Voice conversation with your owl", "pro", False),
+    ("weevolve chat", "Unlimited voice conversation with your owl", "pro", False),
     ("weevolve companion", "3D owl companion in browser", "pro", False),
     ("weevolve activate <key>", "Activate Pro license", "pro", False),
 ]
@@ -524,13 +526,17 @@ def _display_features(env: dict, used_features: set):
     print()
 
     # Pro features
-    print(f"  {MAGENTA}PRO{RESET} {DIM}($7.99/mo -- voice chat, 3D companion, 8 owls){RESET}")
+    print(f"  {MAGENTA}PRO{RESET} {DIM}($7.99/mo, 8 days free -- unlimited voice, forest, team){RESET}")
     for cmd, desc, tier, _ in FEATURES:
         if tier != "pro":
             continue
         print(f"    {cmd}")
         print(f"      {DIM}{desc}{RESET}")
 
+    print()
+    print(f"  {DIM}Free: SEED, Learn, Recall, Teach, Evolve, Voice (50/day), Forest (5/day){RESET}")
+    print(f"  {DIM}Pro:  Unlimited everything + Chat + Companion + Team + Priority Support{RESET}")
+    print(f"  {CYAN}->{RESET} https://buy.stripe.com/eVq5kE4mrbno8ww8kP1Nu01")
     print()
 
 

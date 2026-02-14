@@ -5,8 +5,13 @@ LOVE -> LIVE FREE -> SEED2 -> 8OWLS -> WeEvolve
 
 The protocol that teaches agents to learn how to learn.
 
+Free to start, Pro unlocks naturally ($7.99/mo, 8 days free trial).
+
 Modules:
   core.py           - Core learning loop (INGEST -> PROCESS -> STORE -> MEASURE -> EVOLVE)
+  tiers.py          - Free vs Pro tier tracking, usage limits, upgrade prompts
+  license.py        - License file management + activation
+  config.py         - Paths, tier definitions, API key loading
   voice.py          - ElevenLabs TTS + Whisper STT
   conversational.py - Bidirectional voice via ElevenLabs ConvAI WebSocket
   teacher.py        - Socratic dialogue (learn by teaching)

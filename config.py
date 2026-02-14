@@ -10,6 +10,12 @@ Data directory priority:
 Base directory (for integration modules scanning codebase):
   1. WEEVOLVE_BASE_DIR env var
   2. Current working directory
+
+Tier definitions (free to start, Pro unlocks naturally):
+  FREE_TIER:  50 voice/day, 5 forest/day, Opus model, core features
+  PRO_TIER:   unlimited everything, $7.99/mo (8 days free trial)
+  Stripe:     https://buy.stripe.com/eVq5kE4mrbno8ww8kP1Nu01
+  Product:    prod_TyZ8UO0GbXvTdy
 """
 
 import os
@@ -55,6 +61,28 @@ PLANS_INDEX = PLANS_DIR / 'index.json'
 COST_LOG = DATA_DIR / 'integrate_cost.json'
 TOOLS_DIR = BASE_DIR / 'tools'
 INVENTORY_CACHE = DATA_DIR / 'inventory_cache.json'
+
+# Usage tracking path
+USAGE_PATH = DATA_DIR / 'usage.json'
+
+# Tier definitions -- importable from config for any module that needs them.
+# Full tier logic (trial, usage tracking, gating) lives in tiers.py.
+FREE_TIER = {
+    "voice_messages_per_day": 50,
+    "forest_queries_per_day": 5,
+    "model": "claude-opus-4-20250514",
+}
+
+PRO_TIER = {
+    "voice_messages_per_day": -1,  # unlimited
+    "forest_queries_per_day": -1,  # unlimited
+    "model": "claude-opus-4-20250514",
+    "features": ["unlimited_voice", "unlimited_forest", "team", "dashboard",
+                  "priority_support"],
+}
+
+STRIPE_PAYMENT_LINK = "https://buy.stripe.com/eVq5kE4mrbno8ww8kP1Nu01"
+TRIAL_DAYS = 8
 
 # Ensure data directory exists on import
 DATA_DIR.mkdir(parents=True, exist_ok=True)
