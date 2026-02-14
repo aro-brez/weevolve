@@ -51,6 +51,7 @@ BOOKMARKS_DIR = DATA_DIR / 'bookmarks'
 # Genesis paths
 GENESIS_DB_DEFAULT = DATA_DIR / 'genesis.db'
 GENESIS_CURATED_DB_DEFAULT = DATA_DIR / 'genesis-curated.db'
+TINYFISH_RESULTS_DIR = DATA_DIR / 'tinyfish_results'
 
 # Integration module paths
 QUALIFY_CACHE = DATA_DIR / 'qualify_cache.json'

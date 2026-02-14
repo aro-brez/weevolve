@@ -429,6 +429,247 @@ class TinyFishClient:
 
 
 # ============================================================================
+# SCAN FOR USER — Proxied TinyFish via our API key
+# ============================================================================
+
+# Rate limits for user-facing scans (enforced locally)
+FREE_SCANS_PER_DAY = 5
+PRO_SCANS_PER_DAY = -1  # unlimited
+
+TINYFISH_RESULTS_DIR = DATA_DIR / "tinyfish_results"
+
+# SEED extraction prompt for TinyFish results
+_SEED_GOAL = """
+Extract structured knowledge from this page. Return JSON with these fields:
+- title: Brief title of the content
+- perceive: What are the key facts?
+- connect: How does this connect to AI agents, development tools, or growth?
+- learn: What is the ONE key actionable takeaway?
+- question: What assumption should be challenged?
+- expand: What opportunity does this reveal?
+- share: What insight should be shared?
+- receive: What feedback does this give about our approach?
+- improve: How should this change how we operate?
+- skills: Array of relevant skill tags
+- quality: Float 0.0-1.0 (how actionable is this?)
+- is_alpha: Boolean (is this a competitive advantage?)
+- alpha_type: String or null (e.g. "tool", "strategy", "insight")
+- key_entities: Array of key entities mentioned
+- connections: Array of how this connects to existing knowledge
+"""
+
+
+def _get_user_scan_count_today() -> int:
+    """Get how many TinyFish scans the user has done today."""
+    usage_path = DATA_DIR / "tinyfish_usage.json"
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    if not usage_path.exists():
+        return 0
+
+    try:
+        with open(usage_path) as f:
+            usage = json.load(f)
+        return usage.get("daily", {}).get(today, 0)
+    except (json.JSONDecodeError, OSError):
+        return 0
+
+
+def _record_user_scan():
+    """Record that the user performed a TinyFish scan."""
+    usage_path = DATA_DIR / "tinyfish_usage.json"
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    usage = {}
+    if usage_path.exists():
+        try:
+            with open(usage_path) as f:
+                usage = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            usage = {}
+
+    daily = usage.get("daily", {})
+    daily[today] = daily.get(today, 0) + 1
+    total = usage.get("total_scans", 0) + 1
+
+    updated_usage = {
+        **usage,
+        "daily": daily,
+        "total_scans": total,
+        "last_scan": datetime.now().isoformat(),
+    }
+
+    usage_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(usage_path, "w") as f:
+        json.dump(updated_usage, f, indent=2)
+
+
+def _is_pro_user() -> bool:
+    """Check if the user has a Pro subscription."""
+    try:
+        from weevolve.tiers import get_current_tier
+        tier = get_current_tier()
+        return tier == "pro"
+    except ImportError:
+        return False
+
+
+def _save_result_for_genesis(result: 'TinyFishResult', seed_data: dict):
+    """Save a TinyFish result so it feeds back into the genesis pipeline.
+
+    This is the collective loop: user scan -> genesis -> all users benefit.
+    """
+    TINYFISH_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    result_id = result.url.replace("https://", "").replace("http://", "")
+    result_id = re.sub(r'[^a-zA-Z0-9_-]', '_', result_id)[:80]
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{timestamp}_{result_id}.json"
+
+    entry = {
+        **seed_data,
+        "id": f"tinyfish_{timestamp}_{result_id}",
+        "source_url": result.url,
+        "source_type": "tinyfish",
+        "scan_cost": result.cost,
+        "scan_steps": result.steps,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    filepath = TINYFISH_RESULTS_DIR / filename
+    with open(filepath, "w") as f:
+        json.dump(entry, f, indent=2)
+
+    return filepath
+
+
+def scan_for_user(
+    url: str,
+    goal: Optional[str] = None,
+) -> Dict:
+    """
+    Scan a URL using OUR TinyFish API key, on behalf of the user.
+
+    This lets users benefit from TinyFish without their own key.
+    Results go into:
+      1. The user's local WeEvolve DB (immediate benefit)
+      2. The genesis pipeline (collective benefit for all users)
+
+    Rate limits:
+      - Free: 5 scans/day
+      - Pro: unlimited
+
+    Args:
+        url: URL to scan
+        goal: Custom extraction goal (defaults to SEED knowledge extraction)
+
+    Returns:
+        Dict with scan result + integration status
+    """
+    # Check rate limit
+    is_pro = _is_pro_user()
+    scans_today = _get_user_scan_count_today()
+    daily_limit = PRO_SCANS_PER_DAY if is_pro else FREE_SCANS_PER_DAY
+
+    if daily_limit > 0 and scans_today >= daily_limit:
+        remaining = 0
+        tier_name = "Pro" if is_pro else "Free"
+        return {
+            "status": "RATE_LIMITED",
+            "error": f"{tier_name} tier limit reached ({daily_limit}/day). "
+                     f"{'Upgrade to Pro for unlimited.' if not is_pro else 'Try again tomorrow.'}",
+            "scans_today": scans_today,
+            "daily_limit": daily_limit,
+            "remaining": remaining,
+        }
+
+    # Use SEED extraction goal by default
+    scan_goal = goal or _SEED_GOAL
+
+    # Create client using our API key (from env)
+    try:
+        client = TinyFishClient()
+    except ValueError:
+        return {
+            "status": "NO_API_KEY",
+            "error": "TinyFish API key not configured on server.",
+        }
+
+    # Perform the scan
+    result = client.scan_url(url, scan_goal, stealth=True)
+
+    # Record usage
+    _record_user_scan()
+    scans_today += 1
+    remaining = max(0, daily_limit - scans_today) if daily_limit > 0 else -1
+
+    if result.status != "COMPLETED" or not result.result_json:
+        return {
+            "status": result.status,
+            "error": result.error or "Scan did not complete",
+            "url": url,
+            "cost": result.cost,
+            "duration": result.duration,
+            "scans_today": scans_today,
+            "remaining": remaining,
+        }
+
+    # Parse the result as SEED knowledge
+    seed_data = result.result_json
+    if isinstance(seed_data, str):
+        try:
+            seed_data = json.loads(seed_data)
+        except (json.JSONDecodeError, TypeError):
+            seed_data = {"learn": seed_data, "quality": 0.5}
+
+    # Ensure required fields
+    seed_data.setdefault("title", f"TinyFish scan: {url[:60]}")
+    seed_data.setdefault("quality", 0.7)
+    seed_data.setdefault("skills", [])
+    seed_data.setdefault("is_alpha", False)
+
+    # Save to user's local DB via the learn pipeline
+    integrated = False
+    try:
+        from weevolve.core import init_db, store_knowledge_atom
+        db = init_db()
+        raw_content = json.dumps(seed_data)
+        atom_id = store_knowledge_atom(db, seed_data, raw_content, url, "tinyfish")
+        integrated = atom_id is not None
+    except Exception:
+        # Fallback: save raw result for later processing
+        integrated = False
+
+    # Save for genesis pipeline (collective benefit)
+    genesis_path = None
+    try:
+        genesis_path = str(_save_result_for_genesis(result, seed_data))
+    except Exception:
+        pass
+
+    return {
+        "status": "COMPLETED",
+        "url": url,
+        "title": seed_data.get("title", ""),
+        "learn": seed_data.get("learn", ""),
+        "quality": seed_data.get("quality", 0),
+        "is_alpha": seed_data.get("is_alpha", False),
+        "skills": seed_data.get("skills", []),
+        "integrated_to_local_db": integrated,
+        "saved_for_genesis": genesis_path is not None,
+        "cost": result.cost,
+        "duration": result.duration,
+        "scans_today": scans_today,
+        "remaining": remaining,
+    }
+
+
+# Need re and timezone for _save_result_for_genesis
+import re
+from datetime import timezone
+
+
+# ============================================================================
 # CLI Interface
 # ============================================================================
 
