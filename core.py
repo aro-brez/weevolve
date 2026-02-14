@@ -40,6 +40,11 @@ Usage:
   python core.py emerge --quick <task>        # Quick 3 owls (LYRA + SAGE + QUEST)
   python core.py voice                        # Start voice orb -- talk to your owl
   python core.py voice --bg                   # Start voice server in background
+  python core.py project                      # Evolve any project (scan + improve)
+  python core.py project --apply              # Scan + interactively apply improvements
+  python core.py project --daemon             # Run recurring evolution checks
+  python core.py project --competitive        # Include GitHub competitive analysis
+  python core.py project --path /some/dir     # Evolve a specific directory
   python core.py genesis export [path]        # Export genesis.db (PII-stripped)
   python core.py genesis export --curated     # Export curated (quality >= 0.7 only)
   python core.py genesis import <path>        # Import genesis.db to bootstrap
@@ -2492,6 +2497,10 @@ def main():
         print(f"  {DIM_C}Forest is being grown. Using recall for now...{RESET_C}\n")
         recall_display(query)
 
+    elif cmd == 'project':
+        from weevolve.project import run_project
+        run_project(sys.argv[2:])
+
     elif cmd == 'pro':
         # Show tier info + upgrade link
         try:
@@ -2528,6 +2537,11 @@ Commands:
   weevolve evolve           Self-evolution analysis + quest generation
   weevolve emerge <task>    Full 8 owls multi-perspective emergence
   weevolve emerge --quick   Quick 3 owls (LYRA + SAGE + QUEST)
+  weevolve project               Evolve any project -- scan, improve, upgrade
+  weevolve project --apply       Scan + interactively apply improvements
+  weevolve project --daemon      Run recurring evolution checks (daily)
+  weevolve project --competitive Include GitHub competitive analysis
+  weevolve project --path <dir>  Evolve a specific directory
   weevolve skill list       Show exportable knowledge topics
   weevolve skill export     Generate portable skill.md
   weevolve connect export   Export knowledge for sharing
