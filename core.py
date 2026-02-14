@@ -36,6 +36,9 @@ Usage:
   python core.py teach                         # Socratic dialogue (learn by teaching)
   python core.py teach <topic>                # Teach about a specific topic
   python core.py evolve                       # Analyze gaps & generate smart quests
+  python core.py upgrade                      # Apply safe improvements from backlog
+  python core.py upgrade --auto               # Apply all without prompting
+  python core.py upgrade --dry-run            # Preview only
   python core.py emerge <task>                 # Full 8 owls multi-perspective emergence
   python core.py emerge --quick <task>        # Quick 3 owls (LYRA + SAGE + QUEST)
   python core.py voice                        # Start voice orb -- talk to your owl
@@ -2607,6 +2610,10 @@ def main():
         print(f"  {DIM_C}Forest is being grown. Using recall for now...{RESET_C}\n")
         recall_display(query)
 
+    elif cmd == 'upgrade':
+        from weevolve.upgrade import run_upgrade
+        run_upgrade(sys.argv[2:])
+
     elif cmd == 'project':
         from weevolve.project import run_project
         run_project(sys.argv[2:])
@@ -2645,6 +2652,9 @@ Commands:
   weevolve watch            Watch directory for new content to learn
   weevolve daemon           Run as continuous learning daemon
   weevolve evolve           Self-evolution analysis + quest generation
+  weevolve upgrade          Apply safe improvements from backlog (SEED-squared)
+  weevolve upgrade --auto   Apply all safe items without prompting
+  weevolve upgrade --dry-run Preview only, apply nothing
   weevolve emerge <task>    Full 8 owls multi-perspective emergence
   weevolve emerge --quick   Quick 3 owls (LYRA + SAGE + QUEST)
   weevolve project               Evolve any project -- scan, improve, upgrade
