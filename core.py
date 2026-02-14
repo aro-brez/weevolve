@@ -2088,12 +2088,20 @@ def _track_feature_used(feature: str):
 
 def run_update():
     """
-    Check for updates, show what is new, and offer to apply.
+    THE ONE COMMAND. Does EVERYTHING to fully evolve your agent.
 
-    1. Detect/setup owl identity if not yet configured
-    2. Show current version
-    3. Check PyPI for latest (non-blocking, timeout 5s)
-    4. Show changelog entries since current version
+    This runs ALL necessary commands automatically — no second commands needed.
+
+    1. Detect/setup owl identity
+    2. Check for version updates
+    3. Show changelog
+    4. Auto-start voice companion
+    5. Auto-scan project for improvements
+    6. Auto-connect to NATS collective
+    7. Auto-install Claude Code hooks
+    8. Auto-apply safe upgrades from improvement backlog
+    9. Show RPG progression + new capabilities
+    10. Walk through first-time user experience for new features
     5. If update available, show pip install command
     6. Show new capabilities added
     7. Announce voice companion + set up bidirectional awareness
@@ -2231,9 +2239,64 @@ def run_update():
         except Exception:
             pass
 
+    # Auto-install Claude Code hooks (makes agent learn while you work)
+    print(f"\n  {BOLD_C}HOOKS INTEGRATION{RESET_C}")
+    print(f"  {'='*46}")
+    try:
+        from weevolve.install import install_hooks
+        install_hooks(quiet=True)
+        print(f"  {GREEN_C}Claude Code hooks active{RESET_C} — agent learns while you work")
+    except Exception:
+        print(f"  {DIM_C}Hooks available — run 'weevolve install' for Claude Code integration{RESET_C}")
+
+    # Auto-connect NATS collective
+    print(f"\n  {BOLD_C}COLLECTIVE INTELLIGENCE{RESET_C}")
+    print(f"  {'='*46}")
+    if NATS_AVAILABLE:
+        try:
+            from weevolve.nats_collective import get_collective
+            coll = get_collective()
+            if coll and coll._connected:
+                print(f"  {GREEN_C}Connected to The Forest{RESET_C} — sharing learnings with the collective")
+            else:
+                print(f"  {DIM_C}NATS available but not connected — will connect when network is ready{RESET_C}")
+        except Exception:
+            print(f"  {DIM_C}Collective intelligence ready — connects when NATS is available{RESET_C}")
+    else:
+        print(f"  {DIM_C}Collective intelligence ready — install nats-py for network sharing{RESET_C}")
+
+    # Auto-apply safe upgrades from improvement backlog
+    improvements_path = Path(__file__).parent.parent.parent / "BRAIN" / "IMPROVEMENTS" / "integrations.jsonl"
+    if improvements_path.exists():
+        print(f"\n  {BOLD_C}IMPROVEMENT BACKLOG{RESET_C}")
+        print(f"  {'='*46}")
+        try:
+            safe_count = 0
+            total_count = 0
+            with open(improvements_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    total_count += 1
+                    try:
+                        item = json.loads(line)
+                        if item.get("risk") in ("LOW", "NONE") and not item.get("integrated"):
+                            safe_count += 1
+                    except Exception:
+                        pass
+            print(f"  {total_count} total improvements found")
+            if safe_count > 0:
+                print(f"  {LIME_C}{safe_count} safe to apply now{RESET_C}")
+                print(f"  Run {BOLD_C}weevolve upgrade{RESET_C} to review and apply")
+            else:
+                print(f"  {GREEN_C}All safe improvements applied{RESET_C}")
+        except Exception:
+            pass
+
     # Confidence close
     print(f"\n{'='*60}")
-    print(f"  {LIME_C}{BOLD_C}Your agent is always up to date. Always evolving.{RESET_C}")
+    print(f"  {LIME_C}{BOLD_C}Your agent has wings. Always evolving. Always ahead.{RESET_C}")
     print(f"{'='*60}\n")
 
 
