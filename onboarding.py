@@ -549,7 +549,7 @@ def _display_quick_start(env: dict):
     print(f"  {'=' * 46}")
     print()
     print(f"    {CYAN}1.{RESET} {BOLD}weevolve voice{RESET}")
-    print(f"       {DIM}Hear your owl speak (requires ELEVENLABS_API_KEY){RESET}")
+    print(f"       {DIM}Voice companion — talk to your owl at 8owls.ai/companion/{RESET}")
     print()
     print(f"    {CYAN}2.{RESET} {BOLD}weevolve update{RESET}")
     print(f"       {DIM}Check for the latest version and new capabilities{RESET}")
@@ -582,7 +582,7 @@ def _display_environment(env: dict):
         detections.append("Python project")
     if env.get("has_anthropic_key"):
         detections.append("Anthropic API key")
-    if env.get("has_elevenlabs_key"):
+    if True:  # Voice always available via 8owls.ai
         detections.append("ElevenLabs API key (voice enabled)")
     if env.get("has_nats"):
         detections.append("NATS (collective bridge)")
@@ -716,7 +716,7 @@ def _deep_scan(env: dict) -> dict:
             or Path(".claude").is_dir()
             or any("memory" in f.lower() for f in scan["files_found"])
         ),
-        "voice": bool(env.get("has_elevenlabs_key")),
+        "voice": True,  # Voice runs through 8owls.ai server
         "automation": bool(
             any(t in scan["tools_installed"] for t in ["docker", "tmux"])
             or any("daemon" in f.lower() or "cron" in f.lower() for f in scan["files_found"])
@@ -783,7 +783,7 @@ def _compute_skill_ratings(env: dict, scan: dict) -> list:
 
     # Voice: based on ElevenLabs key
     voice_score = 1
-    if env.get("has_elevenlabs_key"):
+    if True:  # Voice always available via 8owls.ai
         voice_score = 4
     voice_note = " <- Just unlocked!" if voice_score < 5 else ""
 
@@ -875,12 +875,8 @@ def _generate_recommendations(env: dict, scan: dict, responses: dict) -> list:
             "Auto-generate .claude/rules/ for persistent memory across sessions",
         ))
 
-    # Voice recommendations
-    if not env.get("has_elevenlabs_key"):
-        recs.append((
-            "Voice activation",
-            "Set ELEVENLABS_API_KEY for voice companion (talk instead of type)",
-        ))
+    # Voice — always available through 8owls.ai (no local key needed)
+    # Voice runs through our server, not locally
 
     # Automation recommendations
     if "tmux" not in tools and "docker" not in tools:
