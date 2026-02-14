@@ -336,15 +336,150 @@ def _parse_dependencies_from_gomod(path: Path) -> List[str]:
 # PHASE 1: PERCEIVE -- Scan the project
 # ============================================================================
 
-def scan_project(project_path: Optional[str] = None) -> ProjectScan:
+def scan_project(project_path: Optional[str] = None, use_fast_scanner: bool = True) -> ProjectScan:
     """
     Deep scan of a project directory. Understands any ecosystem.
     Returns a ProjectScan dataclass with all discovered information.
+
+    When use_fast_scanner=True (default), uses ripgrep + parallel I/O
+    for 10-50x faster scanning. Falls back to os.walk if ripgrep unavailable.
     """
     base = Path(project_path) if project_path else Path.cwd()
     base = base.resolve()
 
     _phase_log(0, f"scanning {base.name}...")
+
+    # ---- FAST PATH: Use FlashScanner when available ----
+    if use_fast_scanner:
+        try:
+            from weevolve.fast_scanner import flash_scan, build_result, RG_BIN
+            if RG_BIN:
+                import time as _time
+                _t0 = _time.monotonic()
+                index = flash_scan(str(base), deep_ast=False, index_content=False, verbose=False)
+                result = build_result(index, str(base))
+                _scan_ms = int((_time.monotonic() - _t0) * 1000)
+
+                # Store the flash index on the scan result for downstream use
+                _phase_log(0, f"flash scan: {result.total_files} files, "
+                           f"{result.total_lines:,} lines in {_scan_ms}ms")
+
+                # Convert FlashScanResult to ProjectScan for compatibility
+                source_files = {}
+                for lang, count in result.files_by_language.items():
+                    # Map language names back to extensions for display
+                    ext_map = {
+                        "python": ".py", "typescript": ".ts", "javascript": ".js",
+                        "rust": ".rs", "go": ".go", "ruby": ".rb", "java": ".java",
+                        "swift": ".swift", "shell": ".sh", "config": ".json",
+                        "markup": ".md", "css": ".css", "html": ".html",
+                    }
+                    ext = ext_map.get(lang, f".{lang}")
+                    source_files[ext] = count
+
+                # Detect ecosystems and manifests (still need basic checks)
+                ecosystems = []
+                manifests_found = {}
+                for ecosystem, manifest_list in MANIFEST_FILES.items():
+                    for manifest in manifest_list:
+                        if "*" in manifest:
+                            matches = list(base.glob(manifest))
+                            if matches:
+                                ecosystems.append(ecosystem)
+                                manifests_found[ecosystem] = matches[0].name
+                                break
+                        elif (base / manifest).exists():
+                            ecosystems.append(ecosystem)
+                            manifests_found[ecosystem] = manifest
+                            break
+
+                indicators = {
+                    "has_tests": result.has_tests,
+                    "has_ci": result.has_ci,
+                    "has_linting": result.has_linting,
+                    "has_docker": result.has_docker,
+                    "has_typing": result.has_typing,
+                    "has_formatting": (base / ".prettierrc").exists() or (base / ".editorconfig").exists(),
+                    "has_docs": (base / "docs").exists() or (base / "README.md").exists(),
+                    "has_security": (base / ".env.example").exists() or (base / "SECURITY.md").exists(),
+                }
+
+                # Read top-level files
+                try:
+                    top_level = sorted(
+                        p.name for p in base.iterdir()
+                        if not p.name.startswith(".")
+                    )[:30]
+                except Exception:
+                    top_level = []
+
+                # Read README + CLAUDE.md
+                readme_excerpt = ""
+                for readme_name in ["README.md", "readme.md", "README.rst", "README"]:
+                    readme_path = base / readme_name
+                    if readme_path.exists():
+                        readme_excerpt = _read_file_safe(readme_path, 2000)
+                        break
+                claude_md_excerpt = ""
+                if (base / "CLAUDE.md").exists():
+                    claude_md_excerpt = _read_file_safe(base / "CLAUDE.md", 1500)
+
+                # Parse deps
+                dependencies = []
+                if (base / "requirements.txt").exists():
+                    dependencies = _parse_dependencies_from_requirements(base / "requirements.txt")
+                elif (base / "pyproject.toml").exists():
+                    dependencies = _parse_dependencies_from_pyproject(base / "pyproject.toml")
+                if (base / "package.json").exists():
+                    dependencies.extend(_parse_dependencies_from_package_json(base / "package.json"))
+                if (base / "Cargo.toml").exists():
+                    dependencies.extend(_parse_dependencies_from_cargo(base / "Cargo.toml"))
+                if (base / "go.mod").exists():
+                    dependencies.extend(_parse_dependencies_from_gomod(base / "go.mod"))
+
+                # Git info
+                has_git = (base / ".git").exists()
+                git_remotes = []
+                last_commit_date = ""
+                if has_git:
+                    ok, remotes_out = _run_cmd(["git", "remote", "-v"], str(base))
+                    if ok and remotes_out:
+                        for line in remotes_out.splitlines():
+                            parts = line.split()
+                            if len(parts) >= 2 and "(fetch)" in line:
+                                git_remotes.append(parts[1])
+                    ok, date_out = _run_cmd(["git", "log", "-1", "--format=%ci"], str(base))
+                    if ok:
+                        last_commit_date = date_out
+
+                scan = ProjectScan(
+                    path=str(base),
+                    name=base.name,
+                    ecosystems=ecosystems,
+                    file_count=result.total_files,
+                    total_lines=result.total_lines,
+                    manifests_found=manifests_found,
+                    indicators=indicators,
+                    top_level_files=top_level,
+                    source_files=source_files,
+                    readme_excerpt=readme_excerpt,
+                    claude_md_excerpt=claude_md_excerpt,
+                    dependency_count=len(dependencies),
+                    dependencies=dependencies[:50],
+                    has_git=has_git,
+                    git_remotes=git_remotes,
+                    last_commit_date=last_commit_date,
+                    scanned_at=datetime.now(timezone.utc).isoformat(),
+                )
+                # Attach flash index for downstream queries
+                scan._flash_index = index  # type: ignore[attr-defined]
+                return scan
+        except ImportError:
+            pass  # Fall through to legacy scanner
+        except Exception:
+            pass  # Fall through to legacy scanner
+
+    # ---- LEGACY PATH: os.walk (slower but always works) ----
 
     # Detect ecosystems
     ecosystems = []

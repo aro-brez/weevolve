@@ -51,6 +51,8 @@ Usage:
   python core.py genesis export [path]        # Export genesis.db (PII-stripped)
   python core.py genesis export --curated     # Export curated (quality >= 0.7 only)
   python core.py genesis import <path>        # Import genesis.db to bootstrap
+  python core.py genesis update              # Update genesis with new high-quality atoms
+  python core.py genesis update --dry-run    # Preview what would be added
   python core.py genesis stats               # Show genesis database stats
   python core.py genesis top [limit]          # Show top learnings (default: 10)
 
@@ -2268,6 +2270,15 @@ def run_update():
     else:
         print(f"  {DIM_C}Collective intelligence ready — install nats-py for network sharing{RESET_C}")
 
+    # Auto-update genesis knowledge from the collective
+    print(f"\n  {BOLD_C}GENESIS KNOWLEDGE{RESET_C}")
+    print(f"  {'='*46}")
+    try:
+        from weevolve.genesis_updater import auto_update_genesis
+        auto_update_genesis(verbose=True)
+    except Exception as e:
+        print(f"  {DIM_C}Genesis check skipped: {e}{RESET_C}")
+
     # Auto-apply safe upgrades from improvement backlog
     improvements_path = Path(__file__).parent.parent.parent / "BRAIN" / "IMPROVEMENTS" / "integrations.jsonl"
     if improvements_path.exists():
@@ -2441,6 +2452,24 @@ def main():
                 return
             genesis_import(sys.argv[3])
 
+        elif subcmd == 'update':
+            from weevolve.genesis_updater import update_genesis
+            dry_run = '--dry-run' in sys.argv
+            min_quality = 0.8
+            if '--min-quality' in sys.argv:
+                idx = sys.argv.index('--min-quality')
+                if len(sys.argv) > idx + 1:
+                    try:
+                        min_quality = float(sys.argv[idx + 1])
+                    except ValueError:
+                        pass
+            update_genesis(
+                min_quality=min_quality,
+                include_tinyfish=True,
+                dry_run=dry_run,
+                verbose=True,
+            )
+
         elif subcmd == 'stats':
             db_path = sys.argv[3] if len(sys.argv) > 3 else None
             genesis_stats(db_path)
@@ -2458,6 +2487,7 @@ def main():
             print("Usage:")
             print("  python core.py genesis export [path] [--curated]")
             print("  python core.py genesis import <path>")
+            print("  python core.py genesis update [--dry-run] [--min-quality 0.8]")
             print("  python core.py genesis stats [path]")
             print("  python core.py genesis top [limit]")
 
@@ -2667,6 +2697,7 @@ Commands:
   weevolve connect export   Export knowledge for sharing
   weevolve connect serve    Start knowledge sharing server
   weevolve connect pull <u> Pull knowledge from remote agent
+  weevolve genesis update   Update genesis with latest collective knowledge
   weevolve genesis stats    Show genesis database stats
   weevolve genesis top      Show top learnings
   weevolve install --claude-code  Install as Claude Code skill + hooks
