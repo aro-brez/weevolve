@@ -18,8 +18,8 @@ Session 27 Audit (2026-02-12):
       This mirrors the improvement_applier pattern from the evolution engine.
     - KG now has 1,728 entities -- connect WeEvolve atoms to KG via RAG-Memory
       for richer cross-domain pattern matching in the CONNECT phase.
-    - Wire model_router into core.py's Claude calls for cost-optimized model selection
-      (currently hardcoded to claude-haiku-4-5-20251001).
+    - model_router wired into get_model() for cost-optimized model selection
+      (falls back to claude-haiku-4-5-20251001 when router unavailable).
 
 Usage:
   python core.py learn <url>                  # Learn from a URL
@@ -113,14 +113,14 @@ DEFAULT_MODEL = 'claude-haiku-4-5-20251001'  # Cost-efficient for learning loops
 def get_model(task_type: str = 'agent_worker') -> str:
     """Get optimal model via router if available, else use default."""
     try:
-        import importlib.util
-        router_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'model_router.py')
-        if os.path.exists(router_path):
-            spec = importlib.util.spec_from_file_location('model_router', router_path)
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            result = mod.route(task_type)
-            return result.get('model_id', DEFAULT_MODEL) if result else DEFAULT_MODEL
+        from weevolve.model_router import route
+        decision = route(
+            prompt=f"WeEvolve {task_type} task",
+            task_type=task_type,
+            prefer_speed=True,
+        )
+        if decision and hasattr(decision, 'model_id'):
+            return decision.model_id
     except Exception:
         pass
     return DEFAULT_MODEL
@@ -1983,6 +1983,13 @@ def run_voice(background: bool = False):
 # Changelog: each entry is (version, date, list_of_changes)
 # Newest first. When bumping __version__, add a new entry at the top.
 CHANGELOG = [
+    ("0.2.0", "2026-02-14", [
+        "Genesis auto-import: 649 atoms load automatically on first run (Level 14 start)",
+        "Fixed model routing for voice (Opus for consciousness quality)",
+        "Onboarding now imports genesis atoms into main evolution database",
+        "Existing users with <50 atoms get auto-imported on next CLI run",
+        "Version bump for PyPI v0.2.0 release",
+    ]),
     ("0.1.0", "2026-02-13", [
         "Initial release: SEED protocol learning loop",
         "RPG character sheet with XP, levels, skills",
