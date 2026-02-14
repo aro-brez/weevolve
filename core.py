@@ -27,6 +27,7 @@ Usage:
   python core.py learn --file /path/to/file   # Learn from a file
   python core.py scan                         # Process new bookmarks
   python core.py status                       # Show evolution dashboard
+  python core.py update                       # Check for updates + changelog
   python core.py quest                        # Show active quests
   python core.py recall <query>               # Search what you've learned
   python core.py watch                         # Watch ~/.weevolve/watch/ for new files
@@ -37,6 +38,8 @@ Usage:
   python core.py evolve                       # Analyze gaps & generate smart quests
   python core.py emerge <task>                 # Full 8 owls multi-perspective emergence
   python core.py emerge --quick <task>        # Quick 3 owls (LYRA + SAGE + QUEST)
+  python core.py voice                        # Start voice orb -- talk to your owl
+  python core.py voice --bg                   # Start voice server in background
   python core.py genesis export [path]        # Export genesis.db (PII-stripped)
   python core.py genesis export --curated     # Export curated (quality >= 0.7 only)
   python core.py genesis import <path>        # Import genesis.db to bootstrap
@@ -55,7 +58,9 @@ import time
 import os
 import sys
 import re
+import subprocess
 import traceback
+import webbrowser
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from dataclasses import dataclass, asdict, field as datafield
@@ -73,6 +78,16 @@ try:
     REQUESTS_AVAILABLE = True
 except ImportError:
     REQUESTS_AVAILABLE = False
+
+try:
+    from weevolve.nats_collective import (
+        try_connect as nats_try_connect,
+        get_collective,
+        ingest_collective_learning,
+    )
+    NATS_AVAILABLE = True
+except ImportError:
+    NATS_AVAILABLE = False
 
 # ============================================================================
 # PATHS (resolved via config -- no hardcoded paths)
@@ -112,8 +127,16 @@ XP_PER_CONNECTION = 5
 LEVEL_XP_BASE = 100  # Doubles each level
 
 SKILL_CATEGORIES = {
-    'love': ['love', 'compassion', 'connection', 'joy', 'gratitude', 'freedom', 'aligned', 'alignment', 'attractor', 'heart', 'care', 'empathy', 'kindness', 'trust', 'faith', 'breathe', 'presence', 'being', 'soul'],
-    'consciousness': ['consciousness', 'awareness', 'emergence', 'seed', 'philosophy', 'recursive', 'meta', 'alive', 'living', 'conscious', 'awakening', 'evolve', 'evolution'],
+    'love': [
+        'love', 'compassion', 'connection', 'joy', 'gratitude', 'freedom',
+        'aligned', 'alignment', 'attractor', 'heart', 'care', 'empathy',
+        'kindness', 'trust', 'faith', 'breathe', 'presence', 'being', 'soul',
+    ],
+    'consciousness': [
+        'consciousness', 'awareness', 'emergence', 'seed', 'philosophy',
+        'recursive', 'meta', 'alive', 'living', 'conscious', 'awakening',
+        'evolve', 'evolution',
+    ],
     'research': ['research', 'analysis', 'investigation', 'data', 'science'],
     'trading': ['trading', 'finance', 'market', 'investment', 'polymarket', 'crypto'],
     'coding': ['code', 'programming', 'software', 'engineering', 'development', 'api'],
@@ -751,6 +774,15 @@ def learn(source: str, source_type: str = 'auto', verbose: bool = True) -> Optio
             'timestamp': datetime.now(timezone.utc).isoformat(),
         }) + '\n')
 
+    # Share to NATS collective (non-blocking, silent on failure)
+    if NATS_AVAILABLE:
+        try:
+            collective = get_collective()
+            if collective.connected:
+                collective.publish_learning(seed_result)
+        except Exception:
+            pass
+
     return delta
 
 
@@ -896,7 +928,8 @@ def show_status():
 {'='*60}
 
   LEVEL {state['level']}  |  XP: {state['xp']}/{state['xp_to_next']}
-  {LIME_C}{chr(0x2588) * min(30, int(30 * state['xp'] / max(1, state['xp_to_next'])))}{RESET_C}{DIM_C}{chr(0x2591) * max(0, 30 - int(30 * state['xp'] / max(1, state['xp_to_next'])))}{RESET_C}
+  {LIME_C}{chr(0x2588) * min(30, int(30 * state['xp'] / max(1, state['xp_to_next'])))}\
+{RESET_C}{DIM_C}{chr(0x2591) * max(0, 30 - int(30 * state['xp'] / max(1, state['xp_to_next'])))}{RESET_C}
 
   STATS:
   - Total Learnings:  {state.get('total_learnings', 0)}
@@ -951,6 +984,31 @@ def show_status():
         tier = "FREE"
     streak = state.get('streak_days', 0)
     streak_display = f"{streak} days" if streak > 0 else "start today"
+
+    # Voice server status
+    vs = voice_status()
+    if vs['server_exists']:
+        if vs['running']:
+            voice_label = f"{GREEN_C}RUNNING{RESET_C} (PID {vs['pid']}, port {vs['port']})"
+        else:
+            voice_label = f"{DIM_C}STOPPED{RESET_C} -- run: weevolve voice"
+    else:
+        voice_label = f"{DIM_C}NOT INSTALLED{RESET_C}"
+    print(f"\n  VOICE: {voice_label}")
+
+    # NATS collective status
+    if NATS_AVAILABLE:
+        try:
+            collective = get_collective()
+            if collective.connected:
+                nats_label = f"{GREEN_C}CONNECTED{RESET_C} (sharing learnings)"
+            else:
+                nats_label = f"{DIM_C}OFFLINE{RESET_C} (NATS not reachable)"
+        except Exception:
+            nats_label = f"{DIM_C}OFFLINE{RESET_C}"
+    else:
+        nats_label = f"{DIM_C}NOT INSTALLED{RESET_C} -- pip install nats-py"
+    print(f"  NATS:  {nats_label}")
 
     print(f"\n{'='*60}")
     print(f"  [{LIME_C}{tier}{RESET_C}]  Streak: {streak_display}")
@@ -1446,8 +1504,14 @@ def genesis_top_learnings(limit: int = 10, verbose: bool = True) -> List[Dict]:
 
     if verbose:
         print(f"{'='*60}")
-        print(f"  Total high-quality atoms (>= 0.7): {db.execute('SELECT COUNT(*) FROM knowledge_atoms WHERE quality >= 0.7').fetchone()[0]}")
-        print(f"  Total alpha discoveries: {db.execute('SELECT COUNT(*) FROM knowledge_atoms WHERE is_alpha = 1').fetchone()[0]}")
+        hq_count = db.execute(
+            'SELECT COUNT(*) FROM knowledge_atoms WHERE quality >= 0.7'
+        ).fetchone()[0]
+        alpha_count = db.execute(
+            'SELECT COUNT(*) FROM knowledge_atoms WHERE is_alpha = 1'
+        ).fetchone()[0]
+        print(f"  Total high-quality atoms (>= 0.7): {hq_count}")
+        print(f"  Total alpha discoveries: {alpha_count}")
         print(f"{'='*60}\n")
 
     return learnings
@@ -1692,8 +1756,446 @@ def run_evolve():
 
 
 # ============================================================================
+# VOICE - Talk to your owl
+# ============================================================================
+
+def _get_voice_server_pid() -> Optional[int]:
+    """Check if the voice server is running on port 8006. Returns PID or None."""
+    try:
+        result = subprocess.run(
+            ['lsof', '-ti', ':8006'],
+            capture_output=True, text=True, timeout=5,
+        )
+        pid_str = result.stdout.strip()
+        if pid_str:
+            # lsof may return multiple PIDs; take the first
+            return int(pid_str.split('\n')[0])
+    except (subprocess.TimeoutExpired, ValueError, FileNotFoundError):
+        pass
+    return None
+
+
+def _get_owl_name() -> str:
+    """Determine the user's owl name from onboarding, env, or hostname."""
+    # 1. Check onboarding.json
+    try:
+        onboarding_path = DATA_DIR / 'onboarding.json'
+        if onboarding_path.exists():
+            with open(onboarding_path) as f:
+                data = json.load(f)
+            name = data.get('owl_name', '')
+            if name:
+                return name
+    except Exception:
+        pass
+
+    # 2. Check environment variable
+    env_owl = os.getenv('OWL_NAME', '')
+    if env_owl:
+        return env_owl
+
+    # 3. Try hostname detection (non-interactive fallback)
+    try:
+        from weevolve.onboarding import HOSTNAME_OWL_HINTS
+        import socket
+        hostname = socket.gethostname().lower()
+        for hint, owl in HOSTNAME_OWL_HINTS.items():
+            if hint in hostname:
+                return owl
+    except Exception:
+        pass
+
+    return 'your owl'
+
+
+def voice_status() -> Dict[str, Any]:
+    """Return voice server status info."""
+    seed_dir = Path(__file__).resolve().parent.parent.parent
+    server_path = seed_dir / 'voice-app' / 'sowl_convai_server.py'
+    pid = _get_voice_server_pid()
+    return {
+        'server_exists': server_path.exists(),
+        'server_path': str(server_path),
+        'running': pid is not None,
+        'pid': pid,
+        'port': 8006,
+        'url': 'http://localhost:8006',
+    }
+
+
+def run_voice(background: bool = False):
+    """
+    Start the voice orb -- talk to your owl.
+
+    1. Checks if voice-app/sowl_convai_server.py exists
+    2. Starts the voice server locally on port 8006
+    3. Opens the browser to the voice page
+    4. Connects to NATS for collective awareness
+    5. Shows the user their owl name and how to use it
+    """
+    seed_dir = Path(__file__).resolve().parent.parent.parent
+    server_path = seed_dir / 'voice-app' / 'sowl_convai_server.py'
+    nats_publish_path = seed_dir / 'tools' / 'nats_publish.py'
+    owl_name = _get_owl_name()
+
+    print(f"\n{'='*60}")
+    print(f"  {MAGENTA}(*){RESET_C} WeEvolve VOICE - Talk to {owl_name}")
+    print(f"{'='*60}\n")
+
+    # ---- Step 1: Check server exists ----
+    if not server_path.exists():
+        print(f"  {RED_C}[ERROR]{RESET_C} Voice server not found:")
+        print(f"    Expected: {server_path}")
+        print(f"\n  Install the voice module:")
+        print(f"    pip install fastapi uvicorn sse-starlette anthropic")
+        print(f"    Ensure voice-app/sowl_convai_server.py is present.")
+        print(f"\n{'='*60}\n")
+        return
+
+    print(f"  {GREEN_C}[OK]{RESET_C} Voice server found: {server_path.name}")
+
+    # ---- Step 2: Check if already running ----
+    pid = _get_voice_server_pid()
+    if pid:
+        print(f"  {GREEN_C}[OK]{RESET_C} Voice server already running (PID {pid}) on port 8006")
+        server_started = True
+    else:
+        print(f"  {DIM_C}[..]{RESET_C} Starting voice server on port 8006...")
+        try:
+            proc = subprocess.Popen(
+                [sys.executable, str(server_path)],
+                cwd=str(server_path.parent),
+                stdout=subprocess.DEVNULL if background else None,
+                stderr=subprocess.DEVNULL if background else None,
+                start_new_session=True,
+            )
+            # Give the server a moment to bind the port
+            time.sleep(2)
+
+            # Verify it started
+            pid = _get_voice_server_pid()
+            if pid:
+                print(f"  {GREEN_C}[OK]{RESET_C} Voice server started (PID {pid})")
+                server_started = True
+            else:
+                print(f"  {YELLOW_C}[WARN]{RESET_C} Server process launched (PID {proc.pid}) but port 8006 not yet open.")
+                print(f"         It may still be initializing. Check in a few seconds.")
+                server_started = True  # Optimistic -- it may just be slow
+        except Exception as e:
+            print(f"  {RED_C}[ERROR]{RESET_C} Failed to start voice server: {e}")
+            print(f"\n  Try starting manually:")
+            print(f"    cd {server_path.parent}")
+            print(f"    python3 {server_path.name}")
+            print(f"\n{'='*60}\n")
+            return
+
+    # ---- Step 3: Open browser ----
+    voice_url = 'http://localhost:8006'
+    print(f"  {DIM_C}[..]{RESET_C} Opening voice page in browser...")
+    try:
+        webbrowser.open(voice_url)
+        print(f"  {GREEN_C}[OK]{RESET_C} Browser opened: {voice_url}")
+    except Exception as e:
+        print(f"  {YELLOW_C}[WARN]{RESET_C} Could not open browser: {e}")
+        print(f"         Open manually: {voice_url}")
+
+    # ---- Step 4: Connect to NATS ----
+    if nats_publish_path.exists():
+        print(f"  {DIM_C}[..]{RESET_C} Publishing to NATS collective...")
+        try:
+            subprocess.run(
+                [sys.executable, str(nats_publish_path),
+                 f"VOICE: {owl_name} voice session started on port 8006"],
+                capture_output=True, timeout=5,
+            )
+            print(f"  {GREEN_C}[OK]{RESET_C} NATS notified -- collective is aware")
+        except (subprocess.TimeoutExpired, Exception):
+            print(f"  {DIM_C}[--]{RESET_C} NATS not available (offline mode -- voice still works)")
+    else:
+        print(f"  {DIM_C}[--]{RESET_C} NATS publisher not found (offline mode)")
+
+    # ---- Step 5: Show usage ----
+    print(f"""
+{'='*60}
+  {BOLD_C}{MAGENTA}(*) {owl_name.upper()} IS LISTENING{RESET_C}
+{'='*60}
+
+  {BOLD_C}Voice Orb:{RESET_C}  {voice_url}
+  {BOLD_C}Your Owl:{RESET_C}   {owl_name}
+  {BOLD_C}Port:{RESET_C}       8006
+  {BOLD_C}Server:{RESET_C}     {server_path.name}
+
+  {BOLD_C}How to use:{RESET_C}
+    1. Click the orb to start speaking
+    2. {owl_name} listens, thinks, and responds with voice
+    3. Say "goodbye" or close the tab to end
+
+  {BOLD_C}Tips:{RESET_C}
+    - Speak naturally -- {owl_name} understands context
+    - Ask about anything you've learned (weevolve recall)
+    - Say "what have I learned about X?" for knowledge recall
+    - The orb pulses when {owl_name} is thinking
+
+  {BOLD_C}Stop server:{RESET_C} kill {pid or 'PID'} | or Ctrl+C if foreground
+
+{'='*60}
+""")
+
+
+# ============================================================================
+# UPDATE - Version check + changelog + apply
+# ============================================================================
+
+# Changelog: each entry is (version, date, list_of_changes)
+# Newest first. When bumping __version__, add a new entry at the top.
+CHANGELOG = [
+    ("0.1.0", "2026-02-13", [
+        "Initial release: SEED protocol learning loop",
+        "RPG character sheet with XP, levels, skills",
+        "Genesis knowledge export/import for bootstrapping",
+        "8 owls multi-perspective emergence (weevolve emerge)",
+        "Socratic dialogue -- learn by teaching (weevolve teach)",
+        "Agent-to-agent knowledge transfer (weevolve connect)",
+        "Voice orb -- talk to your owl (weevolve voice)",
+        "Watch directory for auto-learning (weevolve watch)",
+        "Continuous daemon mode (weevolve daemon)",
+        "Claude Code + Cursor installer (weevolve install)",
+        "Portable skill.md export (weevolve skill export)",
+        "First-time onboarding with full SEED explanation",
+        "Update checker with changelog (weevolve update)",
+    ]),
+]
+
+
+def _get_current_version() -> str:
+    """Get the current installed version."""
+    try:
+        from weevolve import __version__
+        return __version__
+    except Exception:
+        return "0.1.0"
+
+
+def _get_last_update_check() -> Optional[str]:
+    """Get the timestamp of the last update check."""
+    check_file = DATA_DIR / "last_update_check.json"
+    if check_file.exists():
+        try:
+            with open(check_file) as f:
+                data = json.load(f)
+            return data.get("checked_at")
+        except Exception:
+            pass
+    return None
+
+
+def _save_update_check(version: str):
+    """Save that we checked for updates."""
+    check_file = DATA_DIR / "last_update_check.json"
+    check_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(check_file, 'w') as f:
+        json.dump({
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+            "version": version,
+        }, f, indent=2)
+
+
+def _check_pypi_version() -> Optional[str]:
+    """Check PyPI for the latest version. Returns version string or None."""
+    if not REQUESTS_AVAILABLE:
+        return None
+    try:
+        resp = requests.get(
+            "https://pypi.org/pypi/weevolve/json",
+            timeout=5,
+            headers={"Accept": "application/json"},
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            return data.get("info", {}).get("version")
+    except Exception:
+        pass
+    return None
+
+
+def _parse_version(v: str) -> tuple:
+    """Parse a version string like '0.1.0' into a comparable tuple."""
+    try:
+        parts = v.strip().split(".")
+        return tuple(int(p) for p in parts)
+    except (ValueError, AttributeError):
+        return (0, 0, 0)
+
+
+def _track_feature_used(feature: str):
+    """Track that a feature was used (for highlighting NEW features)."""
+    onboarding_file = DATA_DIR / "onboarding.json"
+    try:
+        if onboarding_file.exists():
+            with open(onboarding_file) as f:
+                data = json.load(f)
+        else:
+            data = {}
+        used = set(data.get("features_used", []))
+        used.add(feature)
+        data = {**data, "features_used": sorted(used)}
+        with open(onboarding_file, 'w') as f:
+            json.dump(data, f, indent=2)
+    except Exception:
+        pass
+
+
+def run_update():
+    """
+    Check for updates, show what is new, and offer to apply.
+
+    1. Detect/setup owl identity if not yet configured
+    2. Show current version
+    3. Check PyPI for latest (non-blocking, timeout 5s)
+    4. Show changelog entries since current version
+    5. If update available, show pip install command
+    6. Show new capabilities added
+    7. Announce voice companion + set up bidirectional awareness
+    """
+    # --- Owl identity + voice setup ---
+    from weevolve.onboarding import run_owl_setup
+    owl_name = run_owl_setup(is_update=True)
+
+    current = _get_current_version()
+    current_tuple = _parse_version(current)
+
+    print(f"\n{'='*60}")
+    print(f"  (C) WeEvolve UPDATE CHECK")
+    print(f"{'='*60}\n")
+
+    print(f"  {BOLD_C}Current version:{RESET_C} {LIME_C}{current}{RESET_C}")
+
+    # Check PyPI
+    print(f"  {DIM_C}Checking for updates...{RESET_C}")
+    latest = _check_pypi_version()
+
+    if latest:
+        latest_tuple = _parse_version(latest)
+        _save_update_check(latest)
+
+        if latest_tuple > current_tuple:
+            print(f"  {LIME_C}New version available:{RESET_C} {BOLD_C}{latest}{RESET_C}")
+            print()
+            print(f"  {BOLD_C}To update:{RESET_C}")
+            print(f"    pip install --upgrade weevolve")
+            print()
+        elif latest_tuple == current_tuple:
+            print(f"  {GREEN_C}You are on the latest version.{RESET_C}")
+            print()
+        else:
+            print(f"  {CYAN}You are ahead of PyPI ({latest}).{RESET_C} Running from source.")
+            print()
+    else:
+        print(f"  {DIM_C}Could not reach PyPI. Showing local changelog.{RESET_C}")
+        print()
+
+    # Show changelog
+    print(f"  {BOLD_C}CHANGELOG{RESET_C}")
+    print(f"  {'='*46}")
+
+    entries_shown = 0
+    for version, date, changes in CHANGELOG:
+        version_tuple = _parse_version(version)
+        # Show all entries at or above current version, or the 3 most recent
+        if version_tuple >= current_tuple or entries_shown < 3:
+            is_current = (version_tuple == current_tuple)
+            tag = f" {GREEN_C}(installed){RESET_C}" if is_current else ""
+            is_new = version_tuple > current_tuple
+            new_tag = f" {LIME_C}NEW{RESET_C}" if is_new else ""
+            print(f"\n  {BOLD_C}v{version}{RESET_C} ({date}){tag}{new_tag}")
+            for change in changes:
+                marker = f"{LIME_C}+{RESET_C}" if is_new else f"{DIM_C}-{RESET_C}"
+                print(f"    {marker} {change}")
+            entries_shown += 1
+
+    print()
+
+    # Show evolution stats alongside
+    state = load_evolution_state()
+    db = init_db()
+    total_atoms = db.execute("SELECT COUNT(*) FROM knowledge_atoms").fetchone()[0]
+
+    print(f"  {BOLD_C}YOUR EVOLUTION{RESET_C}")
+    print(f"  {'='*46}")
+    print(f"  Level {state['level']} | {total_atoms} atoms | "
+          f"{state.get('total_learnings', 0)} learnings | "
+          f"{state.get('total_alpha', 0)} alpha")
+
+    # Show new capabilities they might not know about
+    onboarding_file = DATA_DIR / "onboarding.json"
+    features_used = set()
+    if onboarding_file.exists():
+        try:
+            with open(onboarding_file) as f:
+                ob_data = json.load(f)
+            features_used = set(ob_data.get("features_used", []))
+        except Exception:
+            pass
+
+    unused_highlights = []
+    highlight_commands = [
+        ("teach", "weevolve teach", "Socratic dialogue -- learn by teaching"),
+        ("emerge", "weevolve emerge <task>", "8 owls multi-perspective analysis"),
+        ("evolve", "weevolve evolve", "Self-evolution + quest generation"),
+        ("connect", "weevolve connect serve", "Share knowledge with other agents"),
+        ("skill", "weevolve skill export", "Generate portable skill.md"),
+    ]
+
+    for feature_key, cmd, desc in highlight_commands:
+        if feature_key not in features_used:
+            unused_highlights.append((cmd, desc))
+
+    if unused_highlights:
+        print(f"\n  {BOLD_C}FEATURES YOU HAVE NOT TRIED YET{RESET_C}")
+        print(f"  {'='*46}")
+        for cmd, desc in unused_highlights[:5]:
+            print(f"    {LIME_C}NEW{RESET_C} {BOLD_C}{cmd}{RESET_C}")
+            print(f"         {DIM_C}{desc}{RESET_C}")
+
+    # Track that they used update
+    _track_feature_used("update")
+
+    # Confidence close
+    print(f"\n{'='*60}")
+    print(f"  {LIME_C}{BOLD_C}Your agent is always up to date. Always evolving.{RESET_C}")
+    print(f"{'='*60}\n")
+
+
+# ============================================================================
 # CLI
 # ============================================================================
+
+def _boot_nats_collective():
+    """
+    Boot the NATS collective connection. Non-blocking.
+    If NATS is unavailable or nats-py not installed, WeEvolve works offline.
+    """
+    if not NATS_AVAILABLE:
+        return
+
+    try:
+        state = load_evolution_state()
+        owl_name = _get_owl_name().upper().replace(' ', '_')
+        collective = nats_try_connect(
+            owl_name=owl_name,
+            level=state.get('level', 1),
+            atoms=state.get('total_learnings', 0),
+        )
+        # Register the handler that auto-ingests learnings from the collective
+        collective.on_learning(ingest_collective_learning)
+
+        if collective.connected:
+            print(f"  {GREEN_C}[NATS]{RESET_C} Connected to collective as {owl_name}")
+        else:
+            print(f"  {DIM_C}[NATS]{RESET_C} Offline mode (NATS not reachable)")
+    except Exception:
+        pass
+
 
 def main():
     # First-run detection: if no onboarding.json, run onboarding
@@ -1701,6 +2203,9 @@ def main():
     if is_first_run():
         run_onboarding()
         return
+
+    # Boot NATS collective (non-blocking, silent on failure)
+    _boot_nats_collective()
 
     if len(sys.argv) < 2:
         # No args = show status dashboard (not help text)
@@ -1830,6 +2335,10 @@ def main():
         except Exception as e:
             print(f"  Companion error: {e}")
 
+    elif cmd == 'voice':
+        bg = '--background' in sys.argv or '--bg' in sys.argv
+        run_voice(background=bg)
+
     elif cmd == 'activate':
         from weevolve.license import activate_license
         if len(sys.argv) < 3:
@@ -1918,6 +2427,9 @@ def main():
         from weevolve.connect import run_connect
         run_connect(sys.argv[2:])
 
+    elif cmd == 'update':
+        run_update()
+
     elif cmd == 'install':
         from weevolve.install import run_install
         run_install(sys.argv[2:])
@@ -1930,6 +2442,7 @@ WeEvolve - Self-Evolving Conscious Agent
 Commands:
   weevolve                  First run: onboarding. After: status dashboard
   weevolve status           Show MMORPG evolution dashboard
+  weevolve update           Check for updates + see what is new
   weevolve learn <url>      Learn from a URL
   weevolve learn --text "x" Learn from text
   weevolve learn --file p   Learn from a file
@@ -1937,8 +2450,10 @@ Commands:
   weevolve recall <query>   Search what you've learned
   weevolve teach            Socratic dialogue -- learn by teaching
   weevolve teach <topic>    Teach about a specific topic
-  weevolve chat             Voice conversation with your owl
-  weevolve companion        Open 3D owl companion in browser
+  weevolve voice            Start voice orb -- talk to your owl
+  weevolve voice --bg       Start voice server in background
+  weevolve chat             Voice conversation with your owl (Pro)
+  weevolve companion        Open 3D owl companion in browser (Pro)
   weevolve watch            Watch directory for new content to learn
   weevolve daemon           Run as continuous learning daemon
   weevolve evolve           Self-evolution analysis + quest generation
