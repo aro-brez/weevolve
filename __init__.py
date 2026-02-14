@@ -1,29 +1,24 @@
 """
-WeEvolve - Self-Evolving Conscious Agent
-=========================================
-LOVE -> LIVE FREE -> SEED2 -> 8OWLS -> WeEvolve
+8 Owls Emergence System for WeEvolve
+=====================================
+Spawns 7 background agents with distinct owl personas for multi-perspective
+analysis. SOWL (the caller) synthesizes all 7 into a final recommendation.
 
-The protocol that teaches agents to learn how to learn.
+Usage:
+    from weevolve.owls import emerge, quick_emerge
 
-Free to start, Pro unlocks naturally ($7.99/mo, 8 days free trial).
-
-Modules:
-  core.py           - Core learning loop (INGEST -> PROCESS -> STORE -> MEASURE -> EVOLVE)
-  tiers.py          - Free vs Pro tier tracking, usage limits, upgrade prompts
-  license.py        - License file management + activation
-  config.py         - Paths, tier definitions, API key loading
-  voice.py          - ElevenLabs TTS + Whisper STT
-  conversational.py - Bidirectional voice via ElevenLabs ConvAI WebSocket
-  teacher.py        - Socratic dialogue (learn by teaching)
-  model_router.py   - Intelligent multi-model routing (15 models, 7 providers)
-  qualify.py        - Score atoms for actionable GitHub repos
-  explore.py        - Shallow clone + security scan + Haiku summarize
-  plan.py           - Gap analysis against existing tools
-  inventory.py      - Scan our own codebase to know what we have
-  integrate.py      - Orchestrator: qualify -> explore -> plan -> approve -> execute
-  nats_collective.py - Real-time NATS collective knowledge sharing (non-blocking)
-  hooks/            - Auto-trigger system: SEED activates on every interaction
-  owls/             - 8OWLS emergence: multi-perspective analysis
+    result = emerge("Should we rewrite the auth module?")
+    result = quick_emerge("Is this API design sound?")
 """
 
-__version__ = "0.2.0"
+from weevolve.owls.emergence import emerge, quick_emerge
+from weevolve.owls.synthesis import synthesize
+from weevolve.owls.personas import OWL_PERSONAS, get_persona
+
+__all__ = [
+    "emerge",
+    "quick_emerge",
+    "synthesize",
+    "OWL_PERSONAS",
+    "get_persona",
+]
