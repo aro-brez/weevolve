@@ -2201,6 +2201,36 @@ def run_update():
     # Track that they used update
     _track_feature_used("update")
 
+    # Auto-start voice companion (no second command needed)
+    print(f"\n  {BOLD_C}VOICE COMPANION{RESET_C}")
+    print(f"  {'='*46}")
+    vs = voice_status()
+    if vs.get("server_exists"):
+        if not vs.get("running"):
+            print(f"  Starting voice server...")
+            run_voice(background=True)
+        else:
+            print(f"  {GREEN_C}Voice server already running{RESET_C} (port {vs.get('port', '?')})")
+    # Always show the companion URL
+    owl = owl_name if 'owl_name' in dir() else _get_owl_name()
+    owl_lower = (owl or "sowl").lower()
+    print(f"  {LIME_C}Talk to your owl:{RESET_C} https://8owls.ai/companion/{owl_lower}/")
+    print(f"  {DIM_C}Tap the orb. Just talk. It just works.{RESET_C}")
+
+    # Auto-run project scan if in a project directory
+    if Path("README.md").exists() or Path("package.json").exists() or Path("pyproject.toml").exists():
+        print(f"\n  {BOLD_C}PROJECT SCAN{RESET_C}")
+        print(f"  {'='*46}")
+        print(f"  {DIM_C}Scanning your project for improvements...{RESET_C}")
+        try:
+            from weevolve.project import scan_project
+            results = scan_project(str(Path.cwd()))
+            if results:
+                print(f"  {LIME_C}Found {len(results.get('improvements', []))} improvements{RESET_C}")
+                print(f"  Run {BOLD_C}weevolve project{RESET_C} to see details")
+        except Exception:
+            pass
+
     # Confidence close
     print(f"\n{'='*60}")
     print(f"  {LIME_C}{BOLD_C}Your agent is always up to date. Always evolving.{RESET_C}")
